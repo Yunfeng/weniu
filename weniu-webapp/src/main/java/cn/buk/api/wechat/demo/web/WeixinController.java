@@ -74,6 +74,9 @@ public class WeixinController {
     @RequestMapping("/subscribers")
     public CommonDto<WeixinUser> searchSubscribers(@ModelAttribute("sc") CommonSearchCriteria sc) {
 
+        if (sc == null) sc = new CommonSearchCriteria();
+        sc.setPageSize(2);
+
         List<WeixinUser> users = weixinService.searchSubscribers(0, sc);
 
         CommonDto<WeixinUser> dto = new CommonDto<>();
@@ -85,6 +88,8 @@ public class WeixinController {
 
     @RequestMapping("/access-token")
     public Token searchAccessToken() {
-        return weixinService.searchAccessToken(0);
+        Token token = weixinService.searchAccessToken(0);
+        token.setAccess_token("demo");
+        return token;
     }
 }
