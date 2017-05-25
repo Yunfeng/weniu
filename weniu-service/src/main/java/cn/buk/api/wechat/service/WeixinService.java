@@ -21,25 +21,17 @@ public interface WeixinService {
 
     JsSdkParam getJsSdkConfig(String jsapi_url);
 
-    /**
-     * 获取网页授权的access_token
-     * @return
-     */
     WeixinOauthToken getOauthToken(String weixinOauthCode);
 
     boolean verifyWeixinSource(String signature, String timestamp, String nonce);
 
     /**
      * 获取微信服务号自定义菜单
-     *
-     * @return
      */
     String getCustomMenu();
 
     /**
      * 创建微信服务号自定义菜单
-     *
-     * @return
      */
     String createCustomMenu();
 

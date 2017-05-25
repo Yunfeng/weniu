@@ -94,7 +94,6 @@ public class WeixinServiceImpl implements WeixinService {
 
     /**
      * @param weixinOauthCode code说明 ： code作为换取access_token的票据，每次用户授权带上的code将不一样，code只能使用一次，5分钟未被使用自动过期。
-     * @return
      */
     public WeixinOauthToken getOauthToken(final String weixinOauthCode) {
         final String url = "https://api.weixin.qq.com/sns/oauth2/access_token?";
@@ -152,7 +151,6 @@ public class WeixinServiceImpl implements WeixinService {
 
     /**
      * 获取微信自定义菜单
-     * @return
      */
     public String getCustomMenu() {
         Token token = getToken();
@@ -175,7 +173,6 @@ public class WeixinServiceImpl implements WeixinService {
     /**
      * 从数据库中读取微信自定义菜单设置，
      * 创建微信自定义菜单
-     * @return
      */
     public String createCustomMenu() {
         WeixinMenu wm = new WeixinMenu();
@@ -241,7 +238,6 @@ public class WeixinServiceImpl implements WeixinService {
 
     /**
      * 获取js-sdk ticket, 可刷新
-     * @return
      */
     private synchronized Token getJsSdkTicket() {
         Token token = weixinDao.retrieveWeixinToken(0, Token.WEIXIN_JS_SDK_TICKET);
@@ -281,7 +277,6 @@ public class WeixinServiceImpl implements WeixinService {
 
     /**
      * 获取js sdk需要的ticket
-     * @return
      */
     private Token refreshWeixinJsSdkTicket() {
         Token accessToken = getToken();
@@ -310,7 +305,6 @@ public class WeixinServiceImpl implements WeixinService {
 
     /**
      * 获取微信素材列表
-     * @return
      */
     public String getMaterials() {
         WeixinMediasRequest request = new WeixinMediasRequest();
@@ -345,8 +339,6 @@ public class WeixinServiceImpl implements WeixinService {
 
     /**
      * 根据openid获取用户信息
-     * @param openid
-     * @return
      */
     public WeixinUserInfo getUserInfo(String openid) {
         String url = "https://api.weixin.qq.com/cgi-bin/user/info?";
@@ -366,9 +358,6 @@ public class WeixinServiceImpl implements WeixinService {
 
     /**
      * 处理微信公众号里面的事件, 以客服消息发送给用户
-     * https://mp.weixin.qq.com/wiki?action=doc&id=mp1421140547
-     *
-     * @param rq
      */
     public void processWeixinEvent(HttpServletResponse response, WxData rq) {
         if ("subscribe".equalsIgnoreCase(rq.getEvent())) {
@@ -407,7 +396,6 @@ public class WeixinServiceImpl implements WeixinService {
 
     /**
      * 同步微信关注用户的OpenId到本地
-     * @return
      */
     public JsonResult syncUserList() {
         Token token = getToken();
@@ -458,7 +446,6 @@ public class WeixinServiceImpl implements WeixinService {
 
     /**
      * 同步消息模板到本地
-     * @return
      */
     public List<WeixinTemplate> syncTemplates() {
         List<WeixinTemplate> results = new ArrayList<>();
@@ -493,8 +480,6 @@ public class WeixinServiceImpl implements WeixinService {
 
     /**
      * 发送模板消息
-     * @param wxTplRq
-     * @return
      */
     public String sendTemplateMsg(WxTemplateSend wxTplRq) {
         String jsonBody = JSON.toJSONString(wxTplRq);
@@ -521,8 +506,6 @@ public class WeixinServiceImpl implements WeixinService {
 
     /**
      * 处理微信推送过来的 用户消息和开发者需要的事件推送
-     * @param request
-     * @param response
      */
     public void processWeixinMessage(HttpServletRequest request, HttpServletResponse response) {
 
@@ -572,8 +555,6 @@ public class WeixinServiceImpl implements WeixinService {
 
     /**
      * 读取微信转发过来的xml数据
-     * @param request
-     * @return
      */
     private String readInputXml(HttpServletRequest request) {
         String result = null;
@@ -597,8 +578,6 @@ public class WeixinServiceImpl implements WeixinService {
 
     /**
      * 将实际url和授权url绑定
-     * @param url0
-     * @return
      */
     private String buildUrlInWeixin(String url0) {
         try {
@@ -614,9 +593,6 @@ public class WeixinServiceImpl implements WeixinService {
 
     /**
      * 发送客户消息给用户
-     * @param touser - openid
-     * @param content
-     * @return
      */
     private String sendCustomMessage(final String touser, final String msgType, final String content, List<Object> articles) {
         JSONObject jsonObject = new JSONObject();
