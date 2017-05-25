@@ -363,4 +363,24 @@
     </plugins>
   </build>
 
+  <distributionManagement>
+    <repository>
+      <id>nexus-releases</id>
+      <name>nexus releases repository</name>
+      <url>http://airline-spider.chinacloudapp.cn:8081/nexus/content/repositories/releases/</url>
+    </repository>
+    <snapshotRepository>
+      <id>nexus-snapshots</id>
+      <name>nexus snapshots respository</name>
+      <url>http://airline-spider.chinacloudapp.cn:8081/nexus/content/repositories/snapshots/</url>
+    </snapshotRepository>
+  </distributionManagement>
+
+  <scm>
+    <connection>scm:svn:https://svn.buk.cn/svn/svnroot/weniu/trunk</connection>
+    <developerConnection>scm:svn:https://svn.buk.cn/svn/svnroot/weniu/trunk</developerConnection>
+    <url>https://svn.buk.cn/svn/svnroot/weniu/trunk</url>
+  </scm>
+
+
 </project>
