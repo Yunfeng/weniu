@@ -36,14 +36,14 @@ public class DataSourceConfiguration {
         return adapter;
     }
 
-    @Bean("mainEMF")
+    @Bean("weniuEMF")
     @Autowired
     public LocalContainerEntityManagerFactoryBean mainEMF(DataSource mainDataSource, JpaVendorAdapter jpaVendorAdapter) {
         LocalContainerEntityManagerFactoryBean emfb = new LocalContainerEntityManagerFactoryBean();
 
         emfb.setDataSource(mainDataSource);
         emfb.setJpaVendorAdapter(jpaVendorAdapter);
-        emfb.setPersistenceUnitName("qms");
+        emfb.setPersistenceUnitName("weniu");
 
         return emfb;
     }

@@ -545,7 +545,7 @@ public class WeixinServiceImpl implements WeixinService {
 
     @Override
     public List<WeixinUser> searchSubscribers(int enterpriseId, CommonSearchCriteria sc) {
-        return weixinDao.searchSubscribers(this.weixinId, sc);
+        return weixinDao.searchSubscribers(enterpriseId, sc);
     }
 
     @Override

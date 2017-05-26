@@ -6,7 +6,7 @@ import javax.persistence.PersistenceUnit;
 
 public abstract class AbstractDao {
 
-	@PersistenceUnit(unitName = "mainEMF")
+	@PersistenceUnit(unitName = "weniuEMF")
 	private EntityManagerFactory emf;
 
 	protected EntityManager createEntityManager() {
