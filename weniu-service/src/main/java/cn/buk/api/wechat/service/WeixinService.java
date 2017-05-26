@@ -2,10 +2,7 @@ package cn.buk.api.wechat.service;
 
 
 import cn.buk.api.wechat.dto.*;
-import cn.buk.api.wechat.entity.Token;
-import cn.buk.api.wechat.entity.WeixinOauthToken;
-import cn.buk.api.wechat.entity.WeixinTemplate;
-import cn.buk.api.wechat.entity.WeixinUser;
+import cn.buk.api.wechat.entity.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -41,7 +38,7 @@ public interface WeixinService {
 
     void processWeixinEvent(HttpServletResponse response, WxData rq);
 
-    JsonResult syncUserList();
+    int syncUserList();
 
     List<WeixinTemplate> syncTemplates();
 
@@ -53,4 +50,18 @@ public interface WeixinService {
     List<WeixinUser> searchSubscribers(int enterpriseId, CommonSearchCriteria sc);
 
     Token searchAccessToken(int enterpriseId);
+
+
+    //database operation
+
+    WeixinTemplate searchWeixinTemplate(String id);
+
+    List<WeixinTemplate> searchTemplates(int enterpriseId);
+
+    List<WeixinCustomMenu> searchCustomMenus(int enterpriseId);
+
+    int deleteCustomMenu(int enterpriseId, int id);
+
+    int createCustomMenu(int enterpriseId, String name, String type, String url, String key, int level, int parentId);
+
 }

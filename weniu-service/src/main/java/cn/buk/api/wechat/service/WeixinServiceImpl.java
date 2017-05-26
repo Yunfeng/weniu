@@ -240,7 +240,7 @@ public class WeixinServiceImpl implements WeixinService {
      * 获取js-sdk ticket, 可刷新
      */
     private synchronized Token getJsSdkTicket() {
-        Token token = weixinDao.retrieveWeixinToken(0, Token.WEIXIN_JS_SDK_TICKET);
+        Token token = weixinDao.retrieveWeixinToken(this.weixinId, Token.WEIXIN_JS_SDK_TICKET);
 
         if (token == null || DateUtil.getPastSeconds(token.getCreateTime()) >= token.getExpires_in()) {
             token = refreshWeixinJsSdkTicket();
@@ -397,7 +397,7 @@ public class WeixinServiceImpl implements WeixinService {
     /**
      * 同步微信关注用户的OpenId到本地
      */
-    public JsonResult syncUserList() {
+    public int syncUserList() {
         Token token = getToken();
         String url = "https://api.weixin.qq.com/cgi-bin/user/get?";
 
@@ -441,7 +441,7 @@ public class WeixinServiceImpl implements WeixinService {
 
         jsonStr = "total: " + total + ", count: " + count;
 
-        return JsonResult.createJsonResult(count, jsonStr);
+        return count;
     }
 
     /**
@@ -545,12 +545,25 @@ public class WeixinServiceImpl implements WeixinService {
 
     @Override
     public List<WeixinUser> searchSubscribers(int enterpriseId, CommonSearchCriteria sc) {
-        return weixinDao.searchSubscribers(0, sc);
+        return weixinDao.searchSubscribers(this.weixinId, sc);
     }
 
     @Override
     public Token searchAccessToken(int enterpriseId) {
         return this.getToken();
+    }
+
+    @Override
+    public WeixinTemplate searchWeixinTemplate(String id) {
+        return weixinDao.searchWeixinTemplate(this.weixinId, id);
+    }
+
+    @Override
+    public List<WeixinTemplate> searchTemplates(int enterpriseId) {
+        if (enterpriseId == this.weixinId)
+            return weixinDao.searchWeixinTemplates(this.weixinId);
+        else
+            return new ArrayList<>();
     }
 
     /**
@@ -638,4 +651,32 @@ public class WeixinServiceImpl implements WeixinService {
         return result;
     }
 
+    public List<WeixinCustomMenu> searchCustomMenus(final int enterpriseId) {
+        return weixinDao.searchCustomMenus(enterpriseId);
+    }
+
+    @Override
+    public int deleteCustomMenu(int enterpriseId, int id) {
+        return weixinDao.deleteCustomMenu(enterpriseId, id);
+    }
+
+    @Override
+    public int createCustomMenu(final int enterpriseId, String name, String type, String url, String key, int level, int parentId) {
+        if (enterpriseId != this.weixinId) return -1;
+
+        WeixinCustomMenu o = new WeixinCustomMenu();
+
+        o.setEnterpriseId(enterpriseId);
+
+        o.setName(name);
+        o.setType(type);
+        o.setUrl(url);
+        o.setKey(key);
+        o.setLevel(level);
+        o.setParentId(parentId);
+
+        int retCode = weixinDao.createCustomMenu(o);
+
+        return retCode;
+    }
 }
