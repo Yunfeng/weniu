@@ -4,7 +4,7 @@
 
   <groupId>cn.buk.api.wechat</groupId>
   <artifactId>weniu</artifactId>
-  <version>1.2.9-SNAPSHOT</version>
+  <version>1.2.10-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>weniu</name>
@@ -12,7 +12,7 @@
 
   <modules>
         <module>weniu-service</module>
-        <module>weniu-webapp</module>
+        <!--<module>weniu-webapp</module>-->
     <module>weniu-dao</module>
     <module>weniu-util</module>
   </modules>
