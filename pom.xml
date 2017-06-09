@@ -4,7 +4,7 @@
 
   <groupId>cn.buk.api.wechat</groupId>
   <artifactId>weniu</artifactId>
-  <version>1.2.17-SNAPSHOT</version>
+  <version>1.2.19-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>weniu</name>
