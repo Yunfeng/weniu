@@ -4,7 +4,7 @@
 
   <groupId>cn.buk.api.wechat</groupId>
   <artifactId>weniu</artifactId>
-  <version>1.2.19-SNAPSHOT</version>
+  <version>1.2.20-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>weniu</name>
@@ -19,7 +19,7 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <springframework.version>4.3.8.RELEASE</springframework.version>
+    <springframework.version>4.3.9.RELEASE</springframework.version>
     <hibernate.version>5.1.7.Final</hibernate.version>
     <!--<hibernate.version>5.0.12.Final</hibernate.version>-->
     <!--<hibernate.version>4.3.11.Final</hibernate.version>-->
