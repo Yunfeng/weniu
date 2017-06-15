@@ -62,4 +62,9 @@ public class WeixinServiceTest {
     }
 
 
+//    @Test
+//    public void testImgUrl() {
+//        weixinService.testImgUrl();
+//    }
+
 }

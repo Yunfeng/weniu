@@ -25,11 +25,14 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static cn.buk.api.wechat.util.HttpUtil.downloadFile;
 import static cn.buk.api.wechat.util.HttpUtil.postUrl;
@@ -51,6 +54,15 @@ public class WeixinServiceImpl implements WeixinService {
      * 图文(news)的客服消息
      */
     private final static String WX_CUSTOM_MSGTYPE_NEWS = "news";
+
+    // 地址
+    private static final String URL = "http://www.csdn.net";
+    // 编码
+    private static final String ECODING = "UTF-8";
+    // 获取img标签正则
+    private static final String IMGURL_REG = "<img.*src=(.*?)[^>]*?>";
+    // 获取src路径的正则
+    private static final String IMGSRC_REG = "http:\"?(.*?)(\"|>|\\s+)";
 
 
 
@@ -103,6 +115,86 @@ public class WeixinServiceImpl implements WeixinService {
         }
         System.out.println(result);
         return result;
+    }
+
+    /***
+     * 获取HTML内容
+     *
+     * @param url
+     * @return
+     * @throws Exception
+     */
+    private String getHTML(String url) throws Exception {
+        URL uri = new URL(url);
+        URLConnection connection = uri.openConnection();
+        InputStream in = connection.getInputStream();
+        byte[] buf = new byte[1024];
+        int length = 0;
+        StringBuffer sb = new StringBuffer();
+        while ((length = in.read(buf, 0, buf.length)) > 0) {
+            sb.append(new String(buf, ECODING));
+        }
+        in.close();
+        return sb.toString();
+    }
+
+    /***
+     * 获取ImageUrl地址
+     *
+     * @param HTML
+     * @return
+     */
+    private List<String> getImageUrl(String HTML) {
+        Matcher matcher = Pattern.compile(IMGURL_REG).matcher(HTML);
+        List<String> listImgUrl = new ArrayList<String>();
+        while (matcher.find()) {
+            listImgUrl.add(matcher.group());
+        }
+        return listImgUrl;
+    }
+
+    /***
+     * 获取ImageSrc地址
+     *
+     * @param listImageUrl
+     * @return
+     */
+    private List<String> getImageSrc(List<String> listImageUrl) {
+        List<String> listImgSrc = new ArrayList<>();
+        for (String image : listImageUrl) {
+            Matcher matcher = Pattern.compile(IMGSRC_REG).matcher(image);
+            while (matcher.find()) {
+                listImgSrc.add(matcher.group().substring(0, matcher.group().length() - 1));
+            }
+        }
+        return listImgSrc;
+    }
+
+    /***
+     * 下载图片
+     *
+     * @param listImgSrc
+     */
+    private void Download(List<String> listImgSrc) {
+        try {
+            for (String url : listImgSrc) {
+                String imageName = url.substring(url.lastIndexOf("/") + 1, url.length());
+                URL uri = new URL(url);
+                InputStream in = uri.openStream();
+                FileOutputStream fo = new FileOutputStream(new File(imageName));
+                byte[] buf = new byte[1024];
+                int length = 0;
+                System.out.println("开始下载:" + url);
+                while ((length = in.read(buf, 0, buf.length)) != -1) {
+                    fo.write(buf, 0, length);
+                }
+                in.close();
+                fo.close();
+                System.out.println(imageName + "下载完成");
+            }
+        } catch (Exception e) {
+            System.out.println("下载失败");
+        }
     }
 
     @Value("${Weixin_Id}")
@@ -180,6 +272,22 @@ public class WeixinServiceImpl implements WeixinService {
         }
     }
 
+
+    public void testImgUrl() {
+        //获得html文本内容
+        String HTML = null;
+        try {
+            HTML = this.getHTML(URL);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        //获取图片标签
+        List<String> imgUrl = this.getImageUrl(HTML);
+        //获取图片src地址
+        List<String> imgSrc = this.getImageSrc(imgUrl);
+        //下载图片
+        //this.Download(imgSrc);
+    }
 
     public boolean verifyWeixinSource(String signature, String timestamp, String nonce) {
         try {
@@ -440,6 +548,9 @@ public class WeixinServiceImpl implements WeixinService {
      * @return
      */
     public String addMaterialNews(WxNewsRequest request) {
+        //检查内容中是否有图片链接，有的话把图片上传到微信，并替换链接
+        replaceImageUrl(request.getArticles());
+
 //        http请求方式: POST，https协议
 //        ?access_token=ACCESS_TOKEN
         final String API_URL = "https://api.weixin.qq.com/cgi-bin/material/add_news?";
@@ -457,6 +568,28 @@ public class WeixinServiceImpl implements WeixinService {
 //            "media_id":MEDIA_ID
 //        }
         return result;
+    }
+
+    private void replaceImageUrl(List<WxNews> articles) {
+        for(WxNews article: articles) {
+            List<String> images = getImageUrl(article.getContent());
+            List<String> urls = getImageSrc(images);
+            for(String url: urls) {
+                //1.下载该图片
+                logger.info(url);
+                String filename = HttpUtil.download(url, null);
+
+                logger.info(filename);
+                if (filename != null) {
+                    //2.调用接口上传图片
+                    WxMediaResponse rs = uploadNewsImage(filename);
+                    //3.用返回的新url替换
+                    if (rs != null && rs.getUrl() != null) {
+                        article.setContent(article.getContent().replace(url, rs.getUrl()));
+                    }
+                }
+            }
+        }
     }
 
     /**

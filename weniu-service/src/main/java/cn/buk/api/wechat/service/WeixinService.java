@@ -13,6 +13,8 @@ import java.util.List;
  */
 public interface WeixinService {
 
+//    void testImgUrl();
+
     /**
      * 验证消息来源是否微信发送的
      * @param signature 签名

@@ -133,6 +133,47 @@ public class HttpUtil extends BaseHttpClient {
         return filepath;
     }
 
+    /**
+     * 根据url下载文件，保存到filepath中
+     * @param url
+     * @param filepath
+     * @return
+     */
+    public static String download(String url, String filepath) {
+        String filename = null;
+        try {
+            CloseableHttpClient httpClient = createHttpClient();
+            RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(SO_TIMEOUT).setConnectTimeout(CONNECTION_TIMEOUT).build();
+
+            HttpGet httpget = new HttpGet(url);
+            HttpResponse response = httpClient.execute(httpget);
+
+            HttpEntity entity = response.getEntity();
+            InputStream is = entity.getContent();
+            if (filepath == null)
+                filepath = getFilePath(response);
+            File file = new File(filepath);
+            file.getParentFile().mkdirs();
+            FileOutputStream fileout = new FileOutputStream(file);
+            /**
+             * 根据实际运行效果 设置缓冲区大小
+             */
+            byte[] buffer=new byte[10 * 1024];
+            int ch = 0;
+            while ((ch = is.read(buffer)) != -1) {
+                fileout.write(buffer,0,ch);
+            }
+            is.close();
+            fileout.flush();
+            fileout.close();
+
+            filename = filepath;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return filename;
+    }
+
     public static String getIpAddr(HttpServletRequest request) {
         String ip = request.getHeader("x-forwarded-for");
         if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
@@ -219,4 +260,5 @@ public class HttpUtil extends BaseHttpClient {
         }
         return filepath;
     }
+
 }
