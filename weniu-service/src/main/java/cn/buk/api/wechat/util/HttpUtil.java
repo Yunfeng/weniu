@@ -1,7 +1,6 @@
 package cn.buk.api.wechat.util;
 
-import org.apache.http.HttpStatus;
-import org.apache.http.NameValuePair;
+import org.apache.http.*;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -14,8 +13,7 @@ import org.apache.log4j.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.util.List;
 
 /**
@@ -27,7 +25,7 @@ public class HttpUtil extends BaseHttpClient {
 
     public static String getUrl(String url, List<NameValuePair> params) {
         //TODO 判断params有的话，还要判断url的结果字符是否为"?"
-        String uri  = url;
+        String uri = url;
         if (params != null) uri += URLEncodedUtils.format(params, "UTF-8");
 
         logger.debug(uri.toString());
@@ -37,7 +35,7 @@ public class HttpUtil extends BaseHttpClient {
 
         HttpGet httpGet = new HttpGet(uri);
         httpGet.setConfig(requestConfig);
-        String rs="";
+        String rs = "";
 
         try {
             CloseableHttpResponse response = httpClient.execute(httpGet);
@@ -72,6 +70,7 @@ public class HttpUtil extends BaseHttpClient {
             CloseableHttpResponse response = httpClient.execute(httpPost);
 
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                outHeaders(response);
                 rs = EntityUtils.toString(response.getEntity(), "UTF-8");
             }
 
@@ -81,6 +80,57 @@ public class HttpUtil extends BaseHttpClient {
         }
 
         return rs;
+    }
+
+    /**
+     * 根据url下载文件，保存到filepath中
+     * @param url
+     * @param filepath
+     * @return
+     */
+    public static String downloadFile(String url, String body, String filepath) {
+        CloseableHttpClient httpClient = createHttpClient();
+        RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(SO_TIMEOUT).setConnectTimeout(CONNECTION_TIMEOUT).build();
+
+        HttpPost httpPost = new HttpPost(url);
+        httpPost.setConfig(requestConfig);
+
+        try {
+            StringEntity entity = new StringEntity(body, "UTF-8");
+            httpPost.setEntity(entity);
+
+            CloseableHttpResponse response = httpClient.execute(httpPost);
+
+//            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                outHeaders(response);
+//                rs = EntityUtils.toString(response.getEntity(), "UTF-8");
+//            }
+
+            InputStream is = response.getEntity().getContent();
+            if (filepath == null)
+                filepath = getFilePath(response);
+            File file = new File(filepath);
+            file.getParentFile().mkdirs();
+            FileOutputStream fileout = new FileOutputStream(file);
+            /**
+             * 根据实际运行效果 设置缓冲区大小
+             */
+            byte[] buffer=new byte[10*1024];
+            int ch = 0;
+            while ((ch = is.read(buffer)) != -1) {
+                fileout.write(buffer,0,ch);
+            }
+            is.close();
+            fileout.flush();
+            fileout.close();
+
+            response.close();
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return null;
+        }
+
+        return filepath;
     }
 
     public static String getIpAddr(HttpServletRequest request) {
@@ -110,5 +160,63 @@ public class HttpUtil extends BaseHttpClient {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void outHeaders(HttpResponse response) {
+        Header[] headers = response.getAllHeaders();
+        for (int i = 0; i < headers.length; i++) {
+            System.out.println(headers[i]);
+        }
+    }
+
+    /**
+     * 获取随机文件名
+     * @return
+     */
+    public static String getRandomFileName() {
+        return String.valueOf(System.currentTimeMillis());
+    }
+
+    /**
+     * 获取response header中Content-Disposition中的filename值
+     * @param response
+     * @return
+     */
+    public static String getFileName(HttpResponse response) {
+        Header contentHeader = response.getFirstHeader("Content-Disposition");
+        String filename = null;
+        if (contentHeader != null) {
+            HeaderElement[] values = contentHeader.getElements();
+            if (values.length == 1) {
+                NameValuePair param = values[0].getParameterByName("filename");
+                if (param != null) {
+                    try {
+                        //filename = new String(param.getValue().toString().getBytes(), "utf-8");
+                        //filename=URLDecoder.decode(param.getValue(),"utf-8");
+                        filename = param.getValue();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+        return filename;
+    }
+
+    /**
+     * 获取response要下载的文件的默认路径
+     * @param response
+     * @return
+     */
+    public static String getFilePath(HttpResponse response) {
+        String filepath = "~/";//root + splash;
+        String filename = getFileName(response);
+
+        if (filename != null) {
+            filepath += filename;
+        } else {
+            filepath += getRandomFileName();
+        }
+        return filepath;
     }
 }

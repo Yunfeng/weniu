@@ -1,6 +1,7 @@
 package cn.buk.api.wechat.dto;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by yfdai on 2017/2/24.
@@ -12,6 +13,8 @@ public class WxMediaInfo {
     private String name;
 
     private String url;
+
+    private WxNewsInfo content;
 
     private Date update_time;
 
@@ -47,4 +50,11 @@ public class WxMediaInfo {
         this.update_time = update_time;
     }
 
+    public WxNewsInfo getContent() {
+        return content;
+    }
+
+    public void setContent(WxNewsInfo content) {
+        this.content = content;
+    }
 }

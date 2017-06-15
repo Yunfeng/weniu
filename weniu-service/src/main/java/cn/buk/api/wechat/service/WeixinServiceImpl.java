@@ -12,6 +12,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.log4j.Logger;
 import org.springframework.beans.BeanUtils;
@@ -21,16 +22,17 @@ import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static cn.buk.api.wechat.util.HttpUtil.downloadFile;
+import static cn.buk.api.wechat.util.HttpUtil.postUrl;
 import static cn.buk.api.wechat.util.HttpUtil.sendResponse;
 
 /**
@@ -49,6 +51,59 @@ public class WeixinServiceImpl implements WeixinService {
      * 图文(news)的客服消息
      */
     private final static String WX_CUSTOM_MSGTYPE_NEWS = "news";
+
+
+
+    public static String postFile(String url, String filePath) {
+        File file = new File(filePath);
+        if (!file.exists())
+            return null;
+
+        String result = null;
+
+        try {
+            URL url1 = new URL(url);
+            HttpURLConnection conn = (HttpURLConnection) url1.openConnection();
+            conn.setConnectTimeout(5000);
+            conn.setReadTimeout(30000);
+            conn.setDoOutput(true);
+            conn.setDoInput(true);
+            conn.setUseCaches(false);
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Connection", "Keep-Alive");
+            conn.setRequestProperty("Cache-Control", "no-cache");
+            String boundary = "-----------------------------" + System.currentTimeMillis();
+            conn.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
+
+            OutputStream output = conn.getOutputStream();
+            output.write(("--" + boundary + "\r\n").getBytes());
+            output.write(String.format("Content-Disposition: form-data; name=\"media\"; filename=\"%s\"\r\n", file.getName()).getBytes("UTF-8"));
+            output.write("Content-Type: image/jpeg \r\n\r\n".getBytes());
+            byte[] data = new byte[1024];
+            int len = 0;
+            FileInputStream input = new FileInputStream(file);
+            while ((len = input.read(data)) > -1) {
+                output.write(data, 0, len);
+            }
+            output.write(("\r\n--" + boundary + "\r\n\r\n").getBytes());
+            output.flush();
+            output.close();
+            input.close();
+            InputStream resp = conn.getInputStream();
+            StringBuffer sb = new StringBuffer();
+            while ((len = resp.read(data)) > -1)
+                sb.append(new String(data, 0, len, "utf-8"));
+            resp.close();
+            result = sb.toString();
+            //System.out.println(result);
+        } catch (ClientProtocolException e) {
+            logger.error("postFile，不支持http协议", e);
+        } catch (IOException e) {
+            logger.error("postFile数据传输失败", e);
+        }
+        System.out.println(result);
+        return result;
+    }
 
     @Value("${Weixin_Id}")
     private int weixinId;
@@ -79,7 +134,6 @@ public class WeixinServiceImpl implements WeixinService {
         jsapiParam.setAppId(this.appId);
 
         Token ticket = getJsSdkTicket();
-
 
         // 3. 签名
         Map<String, String> ret = SignUtil.sign(ticket.getAccess_token(), jsapi_url);
@@ -153,8 +207,9 @@ public class WeixinServiceImpl implements WeixinService {
      * 获取微信自定义菜单
      */
     public String getCustomMenu() {
+        final String url = "https://api.weixin.qq.com/cgi-bin/menu/get?";
+
         Token token = getToken();
-        String url = "https://api.weixin.qq.com/cgi-bin/menu/get?";
 
         List<NameValuePair> params = new ArrayList<>();
         params.add(new BasicNameValuePair("access_token", token.getAccess_token()));
@@ -304,13 +359,17 @@ public class WeixinServiceImpl implements WeixinService {
     }
 
     /**
-     * 获取微信素材列表
+     *获取微信素材列表
+     * @param mediaType 素材的类型，图片（image）、视频（video）、语音 （voice）、图文（news）
+     * @param offset 从全部素材的该偏移位置开始返回，0表示从第一个素材 返回
+     * @param count 返回素材的数量，取值在1到20之间
+     * @return
      */
-    public String getMaterials() {
+    public WxMaterials getMaterials(final String mediaType, final int offset, final int count) {
         WeixinMediasRequest request = new WeixinMediasRequest();
-        request.setType("image");
-        request.setOffset(0);
-        request.setCount(20);
+        request.setType(mediaType);
+        request.setOffset(offset);
+        request.setCount(count);
 
         String jsonBody = JSON.toJSON(request).toString();
         logger.debug(jsonBody);
@@ -325,16 +384,163 @@ public class WeixinServiceImpl implements WeixinService {
 
         try {
             result = new String(result.getBytes("ISO-8859-1"), "UTF-8");
-
-            WeixinMediasResponse rs = JSON.parseObject(result, WeixinMediasResponse.class);
-            if (rs != null) {
-                logger.info(rs.getTotal_count());
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
         }
 
+        WxMaterials rs = JSON.parseObject(result, WxMaterials.class);
+
+        return rs;
+    }
+
+    /**
+     * 新增其他类型永久素材
+
+     接口调用请求说明
+
+     通过POST表单来调用接口，表单id为media，包含需要上传的素材内容，有filename、filelength、content-type等信息。请注意：图片素材将进入公众平台官网素材管理模块中的默认分组。
+     *
+     * @param filePath 文件路径
+     * @param mediaType 媒体文件类型，分别有图片（image）、语音（voice）、视频（video）和缩略图（thumb）
+     * @return 返回原始结果
+     */
+    public WxMediaResponse addMaterial(final String filePath, final String mediaType) {
+        final String API_URL = "https://api.weixin.qq.com/cgi-bin/material/add_material?";
+
+        Token token = getToken();
+        String url = API_URL + "access_token=" + token.getAccess_token() + "&type=" + mediaType;
+
+        String result = postFile(url, filePath);
+
+//        {
+// "media_id":"D66eMY48x0SJaUhRU4Ggil4iBLv367MC1aHjvKLCvj4",
+// "url":"http:\/\/mmbiz.qpic.cn\/mmbiz_jpg\/5JPNn1NvhAo6NicG9Ne8oPVNNThVSQyMEhwcxpia1d8iclaibPLrZibNFvku3fpLiaG11RnIEILUJMm6KFRT5J8VUibicw\/0?wx_fmt=jpeg"}
+
+        WxMediaResponse rs = JSON.parseObject(result, WxMediaResponse.class);
+
+        if (rs.getErrcode() <= 0) {
+            //上传成功
+            WeixinMaterial wm = new WeixinMaterial();
+            wm.setOwnerId(this.weixinId);
+            wm.setMaterialType(mediaType);
+            wm.setMediaId(rs.getMedia_id());
+            wm.setUrl(rs.getUrl());
+
+            weixinDao.createWeixinMaterial(wm);
+        } else {
+            logger.error(result);
+        }
+
+
+        return rs;
+    }
+
+    /**
+     * 新增永久图文素材
+     * @return
+     */
+    public String addMaterialNews(WxNewsRequest request) {
+//        http请求方式: POST，https协议
+//        ?access_token=ACCESS_TOKEN
+        final String API_URL = "https://api.weixin.qq.com/cgi-bin/material/add_news?";
+
+        Token token = getToken();
+        String url = API_URL + "access_token=" + token.getAccess_token();
+
+        String jsonBody = JSON.toJSON(request).toString();
+        logger.debug(jsonBody);
+
+        String result = postUrl(url, jsonBody);
+
+        logger.info(result);
+//        {
+//            "media_id":MEDIA_ID
+//        }
         return result;
+    }
+
+    /**
+     * 上传图文消息内的图片获取URL
+     本接口所上传的图片不占用公众号的素材库中图片数量的5000个的限制。图片仅支持jpg/png格式，大小必须在1MB以下。
+     * @param filePath
+     * @return
+     */
+    public WxMediaResponse uploadNewsImage(String filePath) {
+        final String API_URL = "https://api.weixin.qq.com/cgi-bin/media/uploadimg?";
+
+        Token token = getToken();
+        String url = API_URL + "access_token=" + token.getAccess_token();
+
+        String result = postFile(url, filePath);
+
+//        {
+//            "url":  "http://mmbiz.qpic.cn/mmbiz/gLO17UPS6FS2xsypf378iaNhWacZ1G1UplZYWEYfwvuU6Ont96b1roYs CNFwaRrSaKTPCUdBK9DgEHicsKwWCBRQ/0"
+//        }
+        logger.info(result);
+
+        WxMediaResponse rs = JSON.parseObject(result, WxMediaResponse.class);
+
+        return rs;
+    }
+
+    /**
+     *http请求方式: POST,https协议
+     * @param mediaId
+     * @return
+     */
+    public String getMaterial(final String mediaType, final String mediaId) {
+        WxMediaRequest request = new WxMediaRequest();
+        request.setMedia_id(mediaId);
+
+        String jsonBody = JSON.toJSON(request).toString();
+        logger.debug(jsonBody);
+
+        Token token = getToken();
+        final String url = "https://api.weixin.qq.com/cgi-bin/material/get_material?access_token=" + token.getAccess_token();
+
+
+        List<NameValuePair> params = new ArrayList<>();
+        params.add(new BasicNameValuePair("body", jsonBody));
+
+        if (mediaType.equalsIgnoreCase(WeixinMaterial.MATERIAL_NEWS) || mediaType.equalsIgnoreCase(WeixinMaterial.MATERIAL_VIDEO)) {
+            return HttpUtil.postUrl(url, jsonBody);
+        } else {
+            return downloadFile(url, jsonBody, null);
+        }
+
+    }
+
+    /**
+     * 删除永久素材
+     */
+    public WxMediaResponse delMaterial(String mediaId) {
+        WxMediaRequest request = new WxMediaRequest();
+        request.setMedia_id(mediaId);
+
+        String jsonBody = JSON.toJSON(request).toString();
+        logger.debug(jsonBody);
+
+        Token token = getToken();
+        final String url = "https://api.weixin.qq.com/cgi-bin/material/del_material?access_token=" + token.getAccess_token();
+
+
+        List<NameValuePair> params = new ArrayList<>();
+        params.add(new BasicNameValuePair("body", jsonBody));
+
+        String result = HttpUtil.postUrl(url, jsonBody);
+
+//        try {
+//            result = new String(result.getBytes("ISO-8859-1"), "UTF-8");
+//
+            WxMediaResponse rs = JSON.parseObject(result, WxMediaResponse.class);
+//            if (rs != null) {
+//                logger.info(rs.getTotal_count());
+//            }
+//        } catch (Exception ex) {
+//            ex.printStackTrace();
+//        }
+
+        return rs;
     }
 
     /**
@@ -354,6 +560,28 @@ public class WeixinServiceImpl implements WeixinService {
         logger.debug(jsonStr);
 
         return JSON.parseObject(jsonStr, WeixinUserInfo.class);
+    }
+
+    /**
+     * 获取素材总数
+     * 1.永久素材的总数，也会计算公众平台官网素材管理中的素材
+     2.图片和图文消息素材（包括单图文和多图文）的总数上限为5000，其他素材的总数上限为1000
+     3.调用该接口需https协议
+     * @return
+     */
+    public WxMaterialSummary getMaterialSummary() {
+        final String url = "https://api.weixin.qq.com/cgi-bin/material/get_materialcount?";
+
+        Token token = getToken();
+
+        List<NameValuePair> params = new ArrayList<>();
+        params.add(new BasicNameValuePair("access_token", token.getAccess_token()));
+
+        String result = HttpUtil.getUrl(url, params);
+
+        WxMaterialSummary summary =  JSON.parseObject(result, WxMaterialSummary.class);
+
+        return summary;
     }
 
     /**
@@ -398,8 +626,9 @@ public class WeixinServiceImpl implements WeixinService {
      * 同步微信关注用户的OpenId到本地
      */
     public int syncUserList() {
+        final String url = "https://api.weixin.qq.com/cgi-bin/user/get?";
+
         Token token = getToken();
-        String url = "https://api.weixin.qq.com/cgi-bin/user/get?";
 
         List<NameValuePair> params = new ArrayList<>();
         params.add(new BasicNameValuePair("access_token", token.getAccess_token()));
@@ -439,7 +668,7 @@ public class WeixinServiceImpl implements WeixinService {
             }
         }
 
-        jsonStr = "total: " + total + ", count: " + count;
+        //jsonStr = "total: " + total + ", count: " + count;
 
         return count;
     }
@@ -549,6 +778,27 @@ public class WeixinServiceImpl implements WeixinService {
     }
 
     @Override
+    public List<WeixinMaterial> searchMaterials(int enterpriseId, CommonSearchCriteria sc) {
+        return weixinDao.searchMaterials(enterpriseId, sc);
+    }
+
+    @Override
+    public int createWeixinMaterial(String mediaType, String mediaId, String url) {
+        WeixinMaterial wm = new WeixinMaterial();
+        wm.setOwnerId(this.weixinId);
+        wm.setMaterialType(mediaType);
+        wm.setMediaId(mediaId);
+        wm.setUrl(url);
+
+        return weixinDao.createWeixinMaterial(wm);
+    }
+
+    @Override
+    public WeixinMaterial searchWeixinMaterial(int id) {
+        return weixinDao.searchWeixinMaterial(this.weixinId, id);
+    }
+
+    @Override
     public Token searchAccessToken(int enterpriseId) {
         return this.getToken();
     }
@@ -607,7 +857,7 @@ public class WeixinServiceImpl implements WeixinService {
     /**
      * 发送客户消息给用户
      */
-    private String sendCustomMessage(final String touser, final String msgType, final String content, List<Object> articles) {
+    public String sendCustomMessage(final String touser, final String msgType, final String content, List<Object> articles) {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("touser", touser);
         jsonObject.put("msgtype", msgType);

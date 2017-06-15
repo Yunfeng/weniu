@@ -254,4 +254,82 @@ public class WeixinDaoImpl extends AbstractDao implements WeixinDao {
         return retCode == 1 ? o.getId(): retCode;
     }
 
+    @Override
+    public int createWeixinMaterial(WeixinMaterial o) {
+        int retCode = persist(o);
+        return retCode == 1 ? o.getId(): retCode;
+    }
+
+    /**
+     * 本地查找微信永久素材
+     * @param enterpriseId
+     * @param sc
+     * @return
+     */
+    public List<WeixinMaterial> searchMaterials(int enterpriseId, CommonSearchCriteria sc) {
+        List<WeixinMaterial> results = null;
+        EntityManager em = createEntityManager();
+        try {
+
+            CriteriaBuilder cb = em.getCriteriaBuilder();
+            CriteriaQuery<WeixinMaterial> cq = cb.createQuery(WeixinMaterial.class);
+            Root<WeixinMaterial> root = cq.from(WeixinMaterial.class);
+
+            Predicate where = cb.conjunction();
+            where = cb.and(where, cb.equal(root.get(WeixinMaterial_.ownerId), enterpriseId));
+
+            cq.where(where);
+            List<javax.persistence.criteria.Order> orderByes = new ArrayList<>();
+            orderByes.add(cb.desc(root.get("id")));
+
+            cq.orderBy(orderByes);
+
+            //计算根据条件查询得出的数据总数
+            CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
+            Root<WeixinMaterial> countRoot = countQuery.from(WeixinMaterial.class);
+
+            Predicate where0 = cb.conjunction();
+            where0 = cb.and(where0, cb.equal(countRoot.get(WeixinMaterial_.ownerId), enterpriseId));
+
+
+            countQuery.select(cb.count(countRoot)).where(where0);
+            Long count = em.createQuery(countQuery).getSingleResult();
+
+            int maxResults = count.intValue();
+            if (maxResults > 0) {
+                Page page = sc.getPage();
+                page.setRowCount(maxResults);
+
+                try {
+                    results = em.createQuery(cq)
+                            .setFirstResult(page.getFirst())
+                            .setMaxResults(page.getPageSize()).getResultList();
+
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        } finally {
+            em.close();
+        }
+
+        if (results == null) results = new ArrayList<>();
+
+        return results;
+    }
+
+    @Override
+    public WeixinMaterial searchWeixinMaterial(int weixinId, int id) {
+        EntityManager em = createEntityManager();
+        try {
+            WeixinMaterial o = em.find(WeixinMaterial.class, id);
+            if (o != null && o.getOwnerId() != weixinId)
+                return null;
+            else
+                return o;
+        } finally {
+            em.close();
+        }
+    }
+
 }

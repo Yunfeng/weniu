@@ -49,4 +49,8 @@ public class Page {
         if (this.pageNo > this.pageTotal) this.pageNo = 1;
 
     }
+
+    public int getFirst() {
+        return (this.pageNo - 1) * this.pageSize;
+    }
 }

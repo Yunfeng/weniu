@@ -5,7 +5,7 @@ import java.util.List;
 /**
  * Created by yfdai on 2017/2/24.
  */
-public class WeixinMediasResponse {
+public class WxMaterials extends BaseResponse {
 
     private int total_count;
 
