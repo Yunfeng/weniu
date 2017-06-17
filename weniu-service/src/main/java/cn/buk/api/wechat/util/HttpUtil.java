@@ -148,6 +148,8 @@ public class HttpUtil extends BaseHttpClient {
             HttpGet httpget = new HttpGet(url);
             HttpResponse response = httpClient.execute(httpget);
 
+            outHeaders(response);
+
             HttpEntity entity = response.getEntity();
             InputStream is = entity.getContent();
             if (filepath == null)

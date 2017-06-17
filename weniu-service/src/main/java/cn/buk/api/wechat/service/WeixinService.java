@@ -15,6 +15,8 @@ public interface WeixinService {
 
 //    void testImgUrl();
 
+    int getWeixinId();
+
     /**
      * 验证消息来源是否微信发送的
      * @param signature 签名
@@ -119,7 +121,7 @@ public interface WeixinService {
      * 新增永久图文素材
      * @return
      */
-    String addMaterialNews(WxNewsRequest request);
+    WxMediaResponse addMaterialNews(WxNewsRequest request);
 
     /**
      * 上传图文消息内的图片获取URL
@@ -152,6 +154,7 @@ public interface WeixinService {
      * @return
      */
     List<WeixinMaterial> searchMaterials(int enterpriseId, CommonSearchCriteria sc);
+    List<WeixinMaterial> searchMaterials(int enterpriseId, String mediaId);
 
     /**
      * 保存永久素材信息在本地
@@ -160,7 +163,7 @@ public interface WeixinService {
      * @param url
      * @return
      */
-    int createWeixinMaterial(String mediaType, String mediaId, String url);
+    int createWeixinMaterial(int enterpriseId, String mediaType, String mediaId, String url, String name);
 
     WeixinMaterial searchWeixinMaterial(int id);
 

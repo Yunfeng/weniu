@@ -55,6 +55,7 @@ public class WeixinMaterial {
      */
     private String url;
 
+    private String name;
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(insertable = false, updatable = false)
@@ -118,5 +119,13 @@ public class WeixinMaterial {
 
     public void setMaterialType(String materialType) {
         this.materialType = materialType;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }

@@ -260,6 +260,30 @@ public class WeixinDaoImpl extends AbstractDao implements WeixinDao {
         return retCode == 1 ? o.getId(): retCode;
     }
 
+    @Override
+    public int updateWeixinMaterial(WeixinMaterial wm) {
+        int retCode;
+
+        EntityManager em = createEntityManager();
+        try {
+            em.getTransaction().begin();
+            em.merge(wm);
+            em.getTransaction().commit();
+
+            retCode = 1;
+        } catch (Exception ex) {
+            if (em.getTransaction().isActive())
+                em.getTransaction().rollback();
+
+            retCode = -100;
+            ex.printStackTrace();
+        } finally {
+            em.close();
+        }
+
+        return retCode;
+    }
+
     /**
      * 本地查找微信永久素材
      * @param enterpriseId
@@ -316,6 +340,18 @@ public class WeixinDaoImpl extends AbstractDao implements WeixinDao {
         if (results == null) results = new ArrayList<>();
 
         return results;
+    }
+
+    public List<WeixinMaterial> searchMaterials(int enterpriseId, String mediaId) {
+        EntityManager em = createEntityManager();
+        try {
+            return em.createQuery("select o from WeixinMaterial o where o.ownerId = :ownerId and o.mediaId = :mediaId")
+                    .setParameter("ownerId", enterpriseId)
+                    .setParameter("mediaId", mediaId)
+                    .getResultList();
+        } finally {
+            em.close();
+        }
     }
 
     @Override

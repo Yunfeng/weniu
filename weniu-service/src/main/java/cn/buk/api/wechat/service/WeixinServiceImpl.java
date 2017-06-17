@@ -65,6 +65,9 @@ public class WeixinServiceImpl implements WeixinService {
     private static final String IMGSRC_REG = "http:\"?(.*?)(\"|>|\\s+)";
 
 
+    private static final String DOWNLOAD_DIR = "/temp";
+
+
 
     public static String postFile(String url, String filePath) {
         File file = new File(filePath);
@@ -289,6 +292,11 @@ public class WeixinServiceImpl implements WeixinService {
         //this.Download(imgSrc);
     }
 
+    @Override
+    public int getWeixinId() {
+        return this.weixinId;
+    }
+
     public boolean verifyWeixinSource(String signature, String timestamp, String nonce) {
         try {
             ArrayList<String> al = new ArrayList<>();
@@ -490,11 +498,11 @@ public class WeixinServiceImpl implements WeixinService {
 
         String result = HttpUtil.postUrl(url, jsonBody);
 
-        try {
-            result = new String(result.getBytes("ISO-8859-1"), "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            //result = new String(result.getBytes("ISO-8859-1"), "UTF-8");
+//        } catch (UnsupportedEncodingException e) {
+//            e.printStackTrace();
+//        }
 
         WxMaterials rs = JSON.parseObject(result, WxMaterials.class);
 
@@ -520,10 +528,6 @@ public class WeixinServiceImpl implements WeixinService {
 
         String result = postFile(url, filePath);
 
-//        {
-// "media_id":"D66eMY48x0SJaUhRU4Ggil4iBLv367MC1aHjvKLCvj4",
-// "url":"http:\/\/mmbiz.qpic.cn\/mmbiz_jpg\/5JPNn1NvhAo6NicG9Ne8oPVNNThVSQyMEhwcxpia1d8iclaibPLrZibNFvku3fpLiaG11RnIEILUJMm6KFRT5J8VUibicw\/0?wx_fmt=jpeg"}
-
         WxMediaResponse rs = JSON.parseObject(result, WxMediaResponse.class);
 
         if (rs.getErrcode() <= 0) {
@@ -547,7 +551,7 @@ public class WeixinServiceImpl implements WeixinService {
      * 新增永久图文素材
      * @return
      */
-    public String addMaterialNews(WxNewsRequest request) {
+    public WxMediaResponse addMaterialNews(WxNewsRequest request) {
         //检查内容中是否有图片链接，有的话把图片上传到微信，并替换链接
         replaceImageUrl(request.getArticles());
 
@@ -564,10 +568,12 @@ public class WeixinServiceImpl implements WeixinService {
         String result = postUrl(url, jsonBody);
 
         logger.info(result);
+
+        WxMediaResponse rs = JSON.parseObject(result, WxMediaResponse.class);
 //        {
 //            "media_id":MEDIA_ID
 //        }
-        return result;
+        return rs;
     }
 
     private void replaceImageUrl(List<WxNews> articles) {
@@ -577,7 +583,8 @@ public class WeixinServiceImpl implements WeixinService {
             for(String url: urls) {
                 //1.下载该图片
                 logger.info(url);
-                String filename = HttpUtil.download(url, null);
+                String filepath = getFilePath(url);
+                String filename = HttpUtil.download(url, filepath);
 
                 logger.info(filename);
                 if (filename != null) {
@@ -589,6 +596,17 @@ public class WeixinServiceImpl implements WeixinService {
                     }
                 }
             }
+        }
+    }
+
+    private String getFilePath(String url) {
+        String[] vals = url.split("/");
+        String val = vals[vals.length - 1];
+
+        if (val.indexOf(".") > 0) {
+            return DOWNLOAD_DIR + "/" + val;
+        } else {
+            return null;
         }
     }
 
@@ -916,14 +934,33 @@ public class WeixinServiceImpl implements WeixinService {
     }
 
     @Override
-    public int createWeixinMaterial(String mediaType, String mediaId, String url) {
-        WeixinMaterial wm = new WeixinMaterial();
-        wm.setOwnerId(this.weixinId);
-        wm.setMaterialType(mediaType);
-        wm.setMediaId(mediaId);
-        wm.setUrl(url);
+    public List<WeixinMaterial> searchMaterials(int enterpriseId, String mediaId) {
+        return weixinDao.searchMaterials(enterpriseId, mediaId);
+    }
 
-        return weixinDao.createWeixinMaterial(wm);
+    @Override
+    public int createWeixinMaterial(int enterpriseId, String mediaType, String mediaId, String url, String name) {
+        if (enterpriseId != this.weixinId) return -1;
+
+        List<WeixinMaterial> list = searchMaterials(this.weixinId, mediaId);
+
+        if (list == null || list.size() == 0) {
+            WeixinMaterial wm = new WeixinMaterial();
+            wm.setOwnerId(this.weixinId);
+            wm.setMaterialType(mediaType);
+            wm.setMediaId(mediaId);
+            wm.setUrl(url);
+            wm.setName(name);
+
+            return weixinDao.createWeixinMaterial(wm);
+        } else {
+            WeixinMaterial wm = list.get(0);
+            wm.setMaterialType(mediaType);
+            wm.setUrl(url);
+            wm.setName(name);
+
+            return weixinDao.updateWeixinMaterial(wm);
+        }
     }
 
     @Override
@@ -1043,14 +1080,9 @@ public class WeixinServiceImpl implements WeixinService {
         return weixinDao.deleteCustomMenu(enterpriseId, id);
     }
 
-    @Override
     public int createCustomMenu(final int enterpriseId, String name, String type, String url, String key, int level, int parentId) {
-        if (enterpriseId != this.weixinId) return -1;
-
         WeixinCustomMenu o = new WeixinCustomMenu();
-
         o.setEnterpriseId(enterpriseId);
-
         o.setName(name);
         o.setType(type);
         o.setUrl(url);
@@ -1058,8 +1090,6 @@ public class WeixinServiceImpl implements WeixinService {
         o.setLevel(level);
         o.setParentId(parentId);
 
-        int retCode = weixinDao.createCustomMenu(o);
-
-        return retCode;
+        return weixinDao.createCustomMenu(o);
     }
 }

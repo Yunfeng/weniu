@@ -49,8 +49,10 @@ public interface WeixinDao {
     int createCustomMenu(WeixinCustomMenu o);
 
     int createWeixinMaterial(WeixinMaterial wm);
+    int updateWeixinMaterial(WeixinMaterial wm);
 
     List<WeixinMaterial> searchMaterials(int enterpriseId, CommonSearchCriteria sc);
+    List<WeixinMaterial> searchMaterials(int enterpriseId, String mediaId);
 
     WeixinMaterial searchWeixinMaterial(int weixinId, int id);
 }
