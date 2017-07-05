@@ -4,18 +4,18 @@
 
   <groupId>cn.buk.api.wechat</groupId>
   <artifactId>weniu</artifactId>
-  <version>1.2.28-SNAPSHOT</version>
+  <version>1.2.29-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>weniu</name>
-  <url>http://maven.apache.org</url>
 
   <modules>
-        <module>weniu-service</module>
-        <!--<module>weniu-webapp</module>-->
     <module>weniu-dao</module>
-    <module>weniu-util</module>
+    <module>weniu-service</module>
+    <!--<module>weniu-webapp</module>-->
   </modules>
+
+  <url>http://maven.apache.org</url>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -60,6 +60,12 @@
 
   <dependencyManagement>
     <dependencies>
+      <dependency>
+        <groupId>cn.buk.common</groupId>
+        <artifactId>buk-common-util</artifactId>
+        <version>1.0.15</version>
+      </dependency>
+
       <!--spring -->
       <dependency>
         <groupId>org.springframework</groupId>
@@ -85,11 +91,6 @@
       <dependency>
         <groupId>org.springframework</groupId>
         <artifactId>spring-context</artifactId>
-        <version>${springframework.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.springframework</groupId>
-        <artifactId>spring-context-support</artifactId>
         <version>${springframework.version}</version>
       </dependency>
 
@@ -205,13 +206,6 @@
         <version>${httpcore.version}</version>
       </dependency>
 
-      <!-- https://mvnrepository.com/artifact/commons-beanutils/commons-beanutils -->
-      <dependency>
-        <groupId>commons-beanutils</groupId>
-        <artifactId>commons-beanutils</artifactId>
-        <version>1.9.3</version>
-      </dependency>
-
       <dependency>
         <groupId>commons-codec</groupId>
         <artifactId>commons-codec</artifactId>
@@ -222,12 +216,6 @@
         <groupId>commons-collections</groupId>
         <artifactId>commons-collections</artifactId>
         <version>3.2.1</version>
-      </dependency>
-
-      <dependency>
-        <groupId>org.javassist</groupId>
-        <artifactId>javassist</artifactId>
-        <version>3.19.0-GA</version>
       </dependency>
 
       <dependency>
@@ -255,12 +243,6 @@
 
 
       <dependency>
-        <groupId>commons-io</groupId>
-        <artifactId>commons-io</artifactId>
-        <version>2.4</version>
-      </dependency>
-
-      <dependency>
         <groupId>ognl</groupId>
         <artifactId>ognl</artifactId>
         <version>${ognl.version}</version>
@@ -281,24 +263,6 @@
         <version>${junit.version}</version>
         <scope>test</scope>
       </dependency>
-      <dependency>
-        <groupId>org.unitils</groupId>
-        <artifactId>unitils-dbunit</artifactId>
-        <version>3.4.2</version>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.dbunit</groupId>
-        <artifactId>dbunit</artifactId>
-        <version>${dbunit.verion}</version>
-        <scope>test</scope>
-        <exclusions>
-          <exclusion>
-            <artifactId>commons-lang</artifactId>
-            <groupId>commons-lang</groupId>
-          </exclusion>
-        </exclusions>
-      </dependency>
 
       <dependency>
         <groupId>commons-logging</groupId>
@@ -306,19 +270,7 @@
         <version>1.2</version>
         <!--<scope>provided</scope>-->
       </dependency>
-      <!-- provided -->
-      <dependency>
-        <groupId>proxool</groupId>
-        <artifactId>proxool</artifactId>
-        <version>0.9.1</version>
-        <scope>provided</scope>
-      </dependency>
-      <dependency>
-        <groupId>proxool</groupId>
-        <artifactId>proxool-cglib</artifactId>
-        <version>1.0</version>
-        <scope>provided</scope>
-      </dependency>
+
       <dependency>
         <groupId>javax.el</groupId>
         <artifactId>el-api</artifactId>
@@ -331,13 +283,6 @@
         <version>6.0.37</version>
         <scope>provided</scope>
       </dependency>
-
-      <!--<dependency>-->
-        <!--<groupId>mysql</groupId>-->
-        <!--<artifactId>mysql-connector-java</artifactId>-->
-        <!--<version>5.1.35</version>-->
-        <!--<scope>provided</scope>-->
-      <!--</dependency>-->
 
       <dependency>
         <groupId>javax.servlet</groupId>

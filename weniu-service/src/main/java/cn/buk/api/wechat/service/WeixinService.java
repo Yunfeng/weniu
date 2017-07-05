@@ -3,6 +3,7 @@ package cn.buk.api.wechat.service;
 
 import cn.buk.api.wechat.dto.*;
 import cn.buk.api.wechat.entity.*;
+import cn.buk.common.CommonSearchCriteria;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;

@@ -7,6 +7,7 @@ import cn.buk.api.wechat.entity.*;
 import cn.buk.api.wechat.util.EncoderHandler;
 import cn.buk.api.wechat.util.HttpUtil;
 import cn.buk.api.wechat.util.SignUtil;
+import cn.buk.common.CommonSearchCriteria;
 import cn.buk.util.DateUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;

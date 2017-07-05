@@ -1,7 +1,7 @@
 package cn.buk.api.wechat.dao;
 
-import cn.buk.api.wechat.dto.CommonSearchCriteria;
 import cn.buk.api.wechat.entity.*;
+import cn.buk.common.CommonSearchCriteria;
 
 import java.util.List;
 

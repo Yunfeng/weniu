@@ -1,10 +1,10 @@
 package cn.buk.api.wechat.demo.web;
 
-import cn.buk.api.wechat.dto.CommonDto;
-import cn.buk.api.wechat.dto.CommonSearchCriteria;
 import cn.buk.api.wechat.entity.Token;
 import cn.buk.api.wechat.entity.WeixinUser;
 import cn.buk.api.wechat.service.WeixinService;
+import cn.buk.common.CommonDto;
+import cn.buk.common.CommonSearchCriteria;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.WebDataBinder;

@@ -1,8 +1,8 @@
 package cn.buk.api.wechat.dao;
 
-import cn.buk.api.wechat.dto.CommonSearchCriteria;
-import cn.buk.api.wechat.dto.Page;
 import cn.buk.api.wechat.entity.*;
+import cn.buk.common.CommonSearchCriteria;
+import cn.buk.common.Page;
 import cn.buk.util.DateUtil;
 import org.springframework.stereotype.Component;
 
@@ -326,7 +326,7 @@ public class WeixinDaoImpl extends AbstractDao implements WeixinDao {
 
                 try {
                     results = em.createQuery(cq)
-                            .setFirstResult(page.getFirst())
+                            .setFirstResult(page.getFirstPosition())
                             .setMaxResults(page.getPageSize()).getResultList();
 
                 } catch (Exception ex) {
