@@ -1,4 +1,6 @@
 .DS_Store
 .idea
 *.iml
+*.versionsBackup
 pom.xml
+.svn

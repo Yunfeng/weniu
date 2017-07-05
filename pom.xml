@@ -4,18 +4,34 @@
 
   <groupId>cn.buk.api.wechat</groupId>
   <artifactId>weniu</artifactId>
-  <version>1.2.29-SNAPSHOT</version>
+  <version>1.2.30</version>
   <packaging>pom</packaging>
 
   <name>weniu</name>
+  <description>Java SDK for WeChat</description>
+  <url>https://github.com/Yunfeng/weniu</url>
+
+  <licenses>
+    <license>
+      <name>GNU General Public License v3.0</name>
+      <url>http://www.gnu.org/licenses/gpl.txt</url>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <name>yunfeng dai</name>
+      <email>1410439635@qq.com</email>
+      <organization>buk</organization>
+      <organizationUrl>http://www.buk.cn</organizationUrl>
+    </developer>
+  </developers>
 
   <modules>
     <module>weniu-dao</module>
     <module>weniu-service</module>
     <!--<module>weniu-webapp</module>-->
   </modules>
-
-  <url>http://maven.apache.org</url>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -55,6 +71,84 @@
         <weixin.appsecret />
         <weixin.token />
       </properties>
+    </profile>
+    <profile>
+      <id>release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.sonatype.plugins</groupId>
+            <artifactId>nexus-staging-maven-plugin</artifactId>
+            <version>1.6.3</version>
+            <extensions>true</extensions>
+            <configuration>
+              <serverId>ossrh</serverId>
+              <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+              <autoReleaseAfterClose>true</autoReleaseAfterClose>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-release-plugin</artifactId>
+            <version>2.5</version>
+            <configuration>
+              <autoVersionSubmodules>true</autoVersionSubmodules>
+              <useReleaseProfile>false</useReleaseProfile>
+              <releaseProfiles>release</releaseProfiles>
+              <goals>deploy</goals>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <version>3.3</version>
+            <configuration>
+              <source>1.6</source>
+              <target>1.6</target>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.6</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <version>3.0.1</version>
+            <executions>
+              <execution>
+                <id>attach-sources</id>
+                <goals>
+                  <goal>jar-no-fork</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>2.10.4</version>
+            <executions>
+              <execution>
+                <id>attach-javadocs</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
   </profiles>
 
@@ -308,24 +402,41 @@
     </plugins>
   </build>
 
+  <!--<distributionManagement>-->
+    <!--<repository>-->
+      <!--<id>nexus-releases</id>-->
+      <!--<name>nexus releases repository</name>-->
+      <!--<url>http://airline-spider.chinacloudapp.cn:8081/nexus/content/repositories/releases/</url>-->
+    <!--</repository>-->
+    <!--<snapshotRepository>-->
+      <!--<id>nexus-snapshots</id>-->
+      <!--<name>nexus snapshots respository</name>-->
+      <!--<url>http://airline-spider.chinacloudapp.cn:8081/nexus/content/repositories/snapshots/</url>-->
+    <!--</snapshotRepository>-->
+  <!--</distributionManagement>-->
+
+  <!--<scm>-->
+    <!--<connection>scm:svn:https://svn.buk.cn/svn/svnroot/weniu/trunk</connection>-->
+    <!--<developerConnection>scm:svn:https://svn.buk.cn/svn/svnroot/weniu/trunk</developerConnection>-->
+    <!--<url>https://svn.buk.cn/svn/svnroot/weniu/trunk</url>-->
+  <!--</scm>-->
+
   <distributionManagement>
-    <repository>
-      <id>nexus-releases</id>
-      <name>nexus releases repository</name>
-      <url>http://airline-spider.chinacloudapp.cn:8081/nexus/content/repositories/releases/</url>
-    </repository>
     <snapshotRepository>
-      <id>nexus-snapshots</id>
-      <name>nexus snapshots respository</name>
-      <url>http://airline-spider.chinacloudapp.cn:8081/nexus/content/repositories/snapshots/</url>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
     </snapshotRepository>
+    <repository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/service/loal/staging/deploy/maven2/</url>
+    </repository>
   </distributionManagement>
 
   <scm>
-    <connection>scm:svn:https://svn.buk.cn/svn/svnroot/weniu/trunk</connection>
-    <developerConnection>scm:svn:https://svn.buk.cn/svn/svnroot/weniu/trunk</developerConnection>
-    <url>https://svn.buk.cn/svn/svnroot/weniu/trunk</url>
+    <connection>scm:git:https://github.com/Yunfeng/weniu.git</connection>
+    <developerConnection>scm:git:https://github.com/Yunfeng/weniu.git</developerConnection>
+    <url>https://github.com/Yunfeng/weniu</url>
+    <tag>v1.2.30</tag>
   </scm>
-
 
 </project>
