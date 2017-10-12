@@ -1,7 +1,7 @@
 package cn.buk.api.wechat.dao;
 
 import cn.buk.api.wechat.entity.*;
-import cn.buk.common.CommonSearchCriteria;
+import cn.buk.common.sc.CommonSearchCriteria;
 
 import java.util.List;
 
@@ -55,4 +55,10 @@ public interface WeixinDao {
     List<WeixinMaterial> searchMaterials(int enterpriseId, String mediaId);
 
     WeixinMaterial searchWeixinMaterial(int weixinId, int id);
+
+    List<WeixinNews> searchWeixinNews(int weixinId);
+
+    int createWxNews(WeixinNews o);
+
+    int deleteWxNews(int enterpriseId, int id);
 }

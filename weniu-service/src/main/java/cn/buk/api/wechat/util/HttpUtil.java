@@ -83,12 +83,12 @@ public class HttpUtil extends BaseHttpClient {
     }
 
     /**
-     * 根据url下载文件，保存到filepath中
+     * 根据url下载文件，保存到filePath中
      * @param url
-     * @param filepath
+     * @param filePath
      * @return
      */
-    public static String downloadFile(String url, String body, String filepath) {
+    public static String downloadFile(String url, String body, String filePath) {
         CloseableHttpClient httpClient = createHttpClient();
         RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(SO_TIMEOUT).setConnectTimeout(CONNECTION_TIMEOUT).build();
 
@@ -107,9 +107,10 @@ public class HttpUtil extends BaseHttpClient {
 //            }
 
             InputStream is = response.getEntity().getContent();
-            if (filepath == null)
-                filepath = getFilePath(response);
-            File file = new File(filepath);
+            if (filePath == null)
+                filePath = getFilePath(response);
+
+            File file = new File(filePath);
             file.getParentFile().mkdirs();
             FileOutputStream fileout = new FileOutputStream(file);
             /**
@@ -130,7 +131,7 @@ public class HttpUtil extends BaseHttpClient {
             return null;
         }
 
-        return filepath;
+        return filePath;
     }
 
     /**
@@ -208,7 +209,7 @@ public class HttpUtil extends BaseHttpClient {
     public static void outHeaders(HttpResponse response) {
         Header[] headers = response.getAllHeaders();
         for (int i = 0; i < headers.length; i++) {
-            System.out.println(headers[i]);
+            logger.debug(headers[i]);
         }
     }
 
@@ -252,15 +253,20 @@ public class HttpUtil extends BaseHttpClient {
      * @return
      */
     public static String getFilePath(HttpResponse response) {
-        String filepath = "~/";//root + splash;
+        //TODO: 临时路径或指定路径？
+//        String filePath = "~/";//root + splash;
+        String filePath = System.getProperty("java.io.tmpdir");
         String filename = getFileName(response);
 
         if (filename != null) {
-            filepath += filename;
+            filePath += filename;
         } else {
-            filepath += getRandomFileName();
+            filePath += getRandomFileName();
         }
-        return filepath;
+
+        logger.debug(filePath);
+
+        return filePath;
     }
 
 }

@@ -11,7 +11,7 @@ import java.util.Date;
 public class WeixinOauthToken {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
     private int weixinId;

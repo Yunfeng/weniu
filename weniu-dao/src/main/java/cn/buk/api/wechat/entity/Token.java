@@ -16,7 +16,7 @@ public class Token {
     public static final int WEIXIN_JS_SDK_TICKET = 100; // 微信 js-sdk ticket
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
     private int weixinId;

@@ -15,7 +15,7 @@ public class WeixinTemplate {
     public static final String BUSINESS_TPL_ORDER_PAY = "101"; // 订单付款业务通知
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
     @Column(name="weixin_id")

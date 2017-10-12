@@ -4,7 +4,7 @@
 
   <groupId>cn.buk.api.wechat</groupId>
   <artifactId>weniu</artifactId>
-  <version>1.2.30</version>
+  <version>1.3.8-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>weniu</name>
@@ -157,7 +157,7 @@
       <dependency>
         <groupId>cn.buk.common</groupId>
         <artifactId>buk-common-util</artifactId>
-        <version>1.0.15</version>
+        <version>1.0.17</version>
       </dependency>
 
       <!--spring -->
@@ -402,41 +402,41 @@
     </plugins>
   </build>
 
-  <!--<distributionManagement>-->
-    <!--<repository>-->
-      <!--<id>nexus-releases</id>-->
-      <!--<name>nexus releases repository</name>-->
-      <!--<url>http://airline-spider.chinacloudapp.cn:8081/nexus/content/repositories/releases/</url>-->
-    <!--</repository>-->
-    <!--<snapshotRepository>-->
-      <!--<id>nexus-snapshots</id>-->
-      <!--<name>nexus snapshots respository</name>-->
-      <!--<url>http://airline-spider.chinacloudapp.cn:8081/nexus/content/repositories/snapshots/</url>-->
-    <!--</snapshotRepository>-->
-  <!--</distributionManagement>-->
-
-  <!--<scm>-->
-    <!--<connection>scm:svn:https://svn.buk.cn/svn/svnroot/weniu/trunk</connection>-->
-    <!--<developerConnection>scm:svn:https://svn.buk.cn/svn/svnroot/weniu/trunk</developerConnection>-->
-    <!--<url>https://svn.buk.cn/svn/svnroot/weniu/trunk</url>-->
-  <!--</scm>-->
-
   <distributionManagement>
-    <snapshotRepository>
-      <id>ossrh</id>
-      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-    </snapshotRepository>
     <repository>
-      <id>ossrh</id>
-      <url>https://oss.sonatype.org/service/loal/staging/deploy/maven2/</url>
+      <id>nexus-releases</id>
+      <name>nexus releases repository</name>
+      <url>http://free.buk.cn:8081/nexus/content/repositories/releases/</url>
     </repository>
+    <snapshotRepository>
+      <id>nexus-snapshots</id>
+      <name>nexus snapshots respository</name>
+      <url>http://free.buk.cn:8081/nexus/content/repositories/snapshots/</url>
+    </snapshotRepository>
   </distributionManagement>
 
   <scm>
-    <connection>scm:git:https://github.com/Yunfeng/weniu.git</connection>
-    <developerConnection>scm:git:https://github.com/Yunfeng/weniu.git</developerConnection>
-    <url>https://github.com/Yunfeng/weniu</url>
-    <tag>v1.2.30</tag>
+    <connection>scm:svn:https://svn.buk.cn/svn/svnroot/weniu/trunk</connection>
+    <developerConnection>scm:svn:https://svn.buk.cn/svn/svnroot/weniu/trunk</developerConnection>
+    <url>https://svn.buk.cn/svn/svnroot/weniu/trunk</url>
   </scm>
+
+  <!--<distributionManagement>-->
+    <!--<snapshotRepository>-->
+      <!--<id>ossrh</id>-->
+      <!--<url>https://oss.sonatype.org/content/repositories/snapshots</url>-->
+    <!--</snapshotRepository>-->
+    <!--<repository>-->
+      <!--<id>ossrh</id>-->
+      <!--<url>https://oss.sonatype.org/service/loal/staging/deploy/maven2/</url>-->
+    <!--</repository>-->
+  <!--</distributionManagement>-->
+
+  <!--<scm>-->
+    <!--<connection>scm:git:https://github.com/Yunfeng/weniu.git</connection>-->
+    <!--<developerConnection>scm:git:https://github.com/Yunfeng/weniu.git</developerConnection>-->
+    <!--<url>https://github.com/Yunfeng/weniu</url>-->
+    <!--<tag>v1.2.30</tag>-->
+  <!--</scm>-->
 
 </project>

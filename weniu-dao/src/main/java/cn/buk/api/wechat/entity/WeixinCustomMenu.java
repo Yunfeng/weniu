@@ -12,7 +12,7 @@ import java.util.Date;
 public class WeixinCustomMenu {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
     @Column(name = "enterprise_id")
@@ -35,6 +35,13 @@ public class WeixinCustomMenu {
     @Column(name = "event_key")
     private String key; // type = click
 
+
+    /**
+     * 0 - 不绑定 微信授权 url
+     * 1 - (默认） 绑定微信授权rul
+     */
+    @Column(name = "bind_url")
+    private Integer bindUrl;
 
     /**
      * 2000是指字符
@@ -116,5 +123,13 @@ public class WeixinCustomMenu {
 
     public void setCreateTime(Date createTime) {
         this.createTime = createTime;
+    }
+
+    public Integer getBindUrl() {
+        return bindUrl == null ? 1 : bindUrl;
+    }
+
+    public void setBindUrl(Integer bindUrl) {
+        this.bindUrl = bindUrl;
     }
 }

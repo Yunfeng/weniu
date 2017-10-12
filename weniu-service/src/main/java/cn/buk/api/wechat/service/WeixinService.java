@@ -3,7 +3,7 @@ package cn.buk.api.wechat.service;
 
 import cn.buk.api.wechat.dto.*;
 import cn.buk.api.wechat.entity.*;
-import cn.buk.common.CommonSearchCriteria;
+import cn.buk.common.sc.CommonSearchCriteria;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -132,7 +132,7 @@ public interface WeixinService {
     WxMediaResponse uploadNewsImage(String filePath);
 
     /**
-     * 获取永久素材, 暂时只支持图文素材
+     * 获取永久素材
      */
     String getMaterial(String mediaType, String mediaId);
 
@@ -141,6 +141,11 @@ public interface WeixinService {
      */
     WxMediaResponse delMaterial(String mediaId);
 
+    /**
+     * 获取临时素材
+     * 语音和图片素材返回下载到本地后的地址；视频文件返回URL
+     */
+    String getMedia(String mediaType, String mediaId);
 
 
 
@@ -178,5 +183,7 @@ public interface WeixinService {
     int deleteCustomMenu(int enterpriseId, int id);
 
     int createCustomMenu(int enterpriseId, String name, String type, String url, String key, int level, int parentId);
+
+    int createCustomMenu(int enterpriseId, String name, String type, String url, String key, int level, int parentId, int bindUrl);
 
 }

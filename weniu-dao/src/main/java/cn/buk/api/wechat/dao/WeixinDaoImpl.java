@@ -1,8 +1,8 @@
 package cn.buk.api.wechat.dao;
 
 import cn.buk.api.wechat.entity.*;
-import cn.buk.common.CommonSearchCriteria;
-import cn.buk.common.Page;
+import cn.buk.common.sc.CommonSearchCriteria;
+import cn.buk.common.sc.Page;
 import cn.buk.util.DateUtil;
 import org.springframework.stereotype.Component;
 
@@ -366,6 +366,46 @@ public class WeixinDaoImpl extends AbstractDao implements WeixinDao {
         } finally {
             em.close();
         }
+    }
+
+    @Override
+    public List<WeixinNews> searchWeixinNews(int weixinId) {
+        EntityManager em = createEntityManager();
+        try {
+            return em.createQuery("select o from WeixinNews o where o.enterpriseId = :enterpriseId order by o.displayOrder")
+                    .setParameter("enterpriseId", weixinId)
+                    .getResultList();
+
+        } finally {
+            em.close();
+        }
+    }
+
+    @Override
+    public int createWxNews(WeixinNews o) {
+        return persist(o);
+    }
+
+    @Override
+    public int deleteWxNews(int enterpriseId, int id) {
+        int retCode = 0;
+        EntityManager em = createEntityManager();
+        try {
+            em.getTransaction().begin();
+            retCode = em.createQuery("delete from  WeixinNews o  where o.enterpriseId = :enterpriseId and o.id = :id")
+                    .setParameter("enterpriseId", enterpriseId)
+                    .setParameter("id", id)
+                    .executeUpdate();
+
+            em.getTransaction().commit();
+        } catch (Exception ex) {
+            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+            retCode = -1;
+        } finally {
+            em.close();
+        }
+
+        return retCode;
     }
 
 }

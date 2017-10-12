@@ -7,7 +7,7 @@ import cn.buk.api.wechat.entity.*;
 import cn.buk.api.wechat.util.EncoderHandler;
 import cn.buk.api.wechat.util.HttpUtil;
 import cn.buk.api.wechat.util.SignUtil;
-import cn.buk.common.CommonSearchCriteria;
+import cn.buk.common.sc.CommonSearchCriteria;
 import cn.buk.util.DateUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
@@ -52,9 +52,14 @@ public class WeixinServiceImpl implements WeixinService {
      */
     private final static String WX_CUSTOM_MSGTYPE_TEXT = "text";
     /**
-     * 图文(news)的客服消息
+     * 图文(news)的客服消息 发送图文消息（点击跳转到外链）
      */
     private final static String WX_CUSTOM_MSGTYPE_NEWS = "news";
+
+    /**
+     * 图文(news)的客服消息 发送图文消息（点击跳转到图文消息页面）
+     */
+    private final static String WX_CUSTOM_MSGTYPE_MPNEWS = "mpnews";
 
     // 地址
     private static final String URL = "http://www.csdn.net";
@@ -68,6 +73,24 @@ public class WeixinServiceImpl implements WeixinService {
 
     private static final String DOWNLOAD_DIR = "/temp";
 
+
+    private static final String WX_API_OAUTH = "https://api.weixin.qq.com/sns/oauth2/access_token?";
+
+    private static final String WX_API_MENU_INFO =  "https://api.weixin.qq.com/cgi-bin/menu/get?";
+
+    /**
+     * 获取永久素材接口
+     */
+    private static final String WX_API_MATERIAL_GET = "https://api.weixin.qq.com/cgi-bin/material/get_material?";
+    /**
+     * 删除永久素材接口
+     */
+    private static final String WX_API_MATERIAL_DEL = "https://api.weixin.qq.com/cgi-bin/material/del_material?";
+
+    /**
+     * 获取媒体文件（临时素材）接口
+     */
+    private static final String WX_API_MEDIA_GET = "https://api.weixin.qq.com/cgi-bin/media/get?";
 
 
     public static String postFile(String url, String filePath) {
@@ -246,7 +269,7 @@ public class WeixinServiceImpl implements WeixinService {
      * @param weixinOauthCode code说明 ： code作为换取access_token的票据，每次用户授权带上的code将不一样，code只能使用一次，5分钟未被使用自动过期。
      */
     public WeixinOauthToken getOauthToken(final String weixinOauthCode) {
-        final String url = "https://api.weixin.qq.com/sns/oauth2/access_token?";
+        final String url = WX_API_OAUTH;
 
         List<NameValuePair> params = new ArrayList<>();
         params.add(new BasicNameValuePair("appid", appId));
@@ -324,7 +347,8 @@ public class WeixinServiceImpl implements WeixinService {
      * 获取微信自定义菜单
      */
     public String getCustomMenu() {
-        final String url = "https://api.weixin.qq.com/cgi-bin/menu/get?";
+        final String url = WX_API_MENU_INFO;
+
 
         Token token = getToken();
 
@@ -351,7 +375,7 @@ public class WeixinServiceImpl implements WeixinService {
 
         List<WeixinCustomMenu> menus = weixinDao.searchCustomMenus(this.weixinId);
 
-        String url;
+        String url = "";
 
         //一级菜单
         for(WeixinCustomMenu m1: menus) {
@@ -360,6 +384,23 @@ public class WeixinServiceImpl implements WeixinService {
             WeixinMenuItem dto = new WeixinMenuItem();
             wm.getButton().add(dto);
             dto.setName(m1.getName());
+
+            if (m1.getType() != null && m1.getType().equalsIgnoreCase("view")) {
+                dto.setType(m1.getType());
+
+                url = m1.getUrl();
+                if (m1.getBindUrl() == 1) {
+                    url = buildUrlInWeixin(m1.getUrl());
+                }
+
+                dto.setUrl(url);
+                continue;
+            } else if (m1.getType() != null && m1.getType().equalsIgnoreCase("click")) {
+                dto.setType(m1.getType());
+                dto.setKey(m1.getKey());
+
+                continue;
+            }
 
             //二级菜单
             for(WeixinCustomMenu m2: menus) {
@@ -375,7 +416,12 @@ public class WeixinServiceImpl implements WeixinService {
                 dto2.setName(m2.getName());
                 if (m2.getType().equalsIgnoreCase("VIEW")) {
                     dto2.setType(m2.getType());
-                    url = buildUrlInWeixin(m2.getUrl());
+
+                    url = m2.getUrl();
+                    if (m2.getBindUrl() == 1) {
+                        url = buildUrlInWeixin(m2.getUrl());
+                    }
+
                     dto2.setUrl(url);
                 } else if (m2.getType().equalsIgnoreCase("click")) {
                     dto2.setType(m2.getType());
@@ -648,7 +694,7 @@ public class WeixinServiceImpl implements WeixinService {
         logger.debug(jsonBody);
 
         Token token = getToken();
-        final String url = "https://api.weixin.qq.com/cgi-bin/material/get_material?access_token=" + token.getAccess_token();
+        final String url = WX_API_MATERIAL_GET + "access_token=" + token.getAccess_token();
 
 
         List<NameValuePair> params = new ArrayList<>();
@@ -659,7 +705,6 @@ public class WeixinServiceImpl implements WeixinService {
         } else {
             return downloadFile(url, jsonBody, null);
         }
-
     }
 
     /**
@@ -673,7 +718,7 @@ public class WeixinServiceImpl implements WeixinService {
         logger.debug(jsonBody);
 
         Token token = getToken();
-        final String url = "https://api.weixin.qq.com/cgi-bin/material/del_material?access_token=" + token.getAccess_token();
+        final String url = WX_API_MATERIAL_DEL + "access_token=" + token.getAccess_token();
 
 
         List<NameValuePair> params = new ArrayList<>();
@@ -693,6 +738,25 @@ public class WeixinServiceImpl implements WeixinService {
 //        }
 
         return rs;
+    }
+
+    /**
+     * 获取临时素材
+     * @param mediaType
+     * @param mediaId
+     * @return 语音和图片素材返回下载到本地后的地址；视频文件返回URL
+     */
+    public String getMedia(String mediaType, String mediaId) {
+        Token token = getToken();
+        final String url = WX_API_MEDIA_GET + "access_token=" + token.getAccess_token() + "&media_id=" + mediaId;
+
+
+
+        if (mediaType.equalsIgnoreCase(WeixinMaterial.MATERIAL_VIDEO)) {
+            return HttpUtil.getUrl(url, null);
+        } else {
+            return HttpUtil.download(url, null);
+        }
     }
 
     /**
@@ -741,28 +805,33 @@ public class WeixinServiceImpl implements WeixinService {
      */
     public void processWeixinEvent(HttpServletResponse response, WxData rq) {
         if ("subscribe".equalsIgnoreCase(rq.getEvent())) {
+            // TODO 通过特定场景二维码关注 eventKey
             List<Object> articles = new ArrayList<>();
+            String mediaId = null;
 
-            WxArticle article = new WxArticle();
-            article.setTitle("新注册会员立送1000积分");
-            article.setDescription("竭诚为您提供优质服务，欢迎您注册会员。");
-            article.setPicurl("");
-            String url0 = "";
-            String url = buildUrlInWeixin(url0);
-            article.setUrl(url);
-            articles.add(article);
+            List<WeixinNews> newsList = weixinDao.searchWeixinNews(this.weixinId);
+            for(WeixinNews o: newsList) {
+                if (o.getMediaId() != null && o.getMediaId().trim().length() > 0) {
+                    mediaId = o.getMediaId();
+                    break;
+                }
 
-            article = new WxArticle();
-            article.setTitle("体验优质服务，现在就开始吧");
-            article.setDescription("欢迎来体验我们的优质服务");
-            article.setPicurl("");
-            url0 = "";
-            url = buildUrlInWeixin(url0);
-            article.setUrl(url);
-            articles.add(article);
+                WxArticle article = new WxArticle();
+                articles.add(article);
 
-            this.sendCustomMessage(rq.getFromUserName(), WX_CUSTOM_MSGTYPE_NEWS, null, articles);
+                article.setTitle(o.getTitle());
+                article.setDescription(o.getDescription());
+                article.setPicurl(o.getPicurl());
+                String url0 = o.getUrl();
+                String url = buildUrlInWeixin(url0);
+                article.setUrl(url);
+            }
 
+            if (mediaId != null) {
+                this.sendCustomMessage(rq.getFromUserName(), WX_CUSTOM_MSGTYPE_MPNEWS, mediaId, null);
+            } else {
+                this.sendCustomMessage(rq.getFromUserName(), WX_CUSTOM_MSGTYPE_NEWS, null, articles);
+            }
         } else if ("unsubscribe".equalsIgnoreCase(rq.getEvent())) {
             logger.warn(rq.getFromUserName() + " unsubscribe.");
 
@@ -1039,7 +1108,11 @@ public class WeixinServiceImpl implements WeixinService {
             textObject.put("content", content);
 
             jsonObject.put("text", textObject);
+        } else if (WX_CUSTOM_MSGTYPE_MPNEWS.equalsIgnoreCase(msgType)) {
+            JSONObject textObject = new JSONObject();
+            textObject.put("media_id", content);
 
+            jsonObject.put("mpnews", textObject);
         } else if (WX_CUSTOM_MSGTYPE_NEWS.equalsIgnoreCase(msgType)) {
             // 发送图文消息(news)
             JSONObject newsObj = new JSONObject();
@@ -1082,6 +1155,11 @@ public class WeixinServiceImpl implements WeixinService {
     }
 
     public int createCustomMenu(final int enterpriseId, String name, String type, String url, String key, int level, int parentId) {
+        return this.createCustomMenu(enterpriseId, name, type, url, key, level, parentId, 1);
+    }
+
+    @Override
+    public int createCustomMenu(int enterpriseId, String name, String type, String url, String key, int level, int parentId, int bindUrl) {
         WeixinCustomMenu o = new WeixinCustomMenu();
         o.setEnterpriseId(enterpriseId);
         o.setName(name);
@@ -1090,6 +1168,7 @@ public class WeixinServiceImpl implements WeixinService {
         o.setKey(key);
         o.setLevel(level);
         o.setParentId(parentId);
+        o.setBindUrl(bindUrl);
 
         return weixinDao.createCustomMenu(o);
     }
