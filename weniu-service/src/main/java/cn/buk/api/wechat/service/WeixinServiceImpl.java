@@ -19,7 +19,6 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -42,7 +41,6 @@ import static cn.buk.api.wechat.util.HttpUtil.sendResponse;
 /**
  * Created by yfdai on 2017/2/6.
  */
-@Component
 public class WeixinServiceImpl implements WeixinService {
 
     private static Logger logger = Logger.getLogger(WeixinServiceImpl.class);
@@ -445,7 +443,7 @@ public class WeixinServiceImpl implements WeixinService {
 
 
     private synchronized Token getToken() {
-        Token token = weixinDao.retrieveWeixinToken(this.weixinId, Token.WEIXIN_SERVICE_TOKEN);
+        Token token = weixinDao.retrieveWeixinToken(this.weixinId, Token.WEIXIN_SERVICE_TOKEN, 0);
 
         if (token == null || DateUtil.getPastSeconds(token.getCreateTime()) >= token.getExpires_in()) {
             token = refreshWeixinToken();
@@ -458,7 +456,7 @@ public class WeixinServiceImpl implements WeixinService {
      * 获取js-sdk ticket, 可刷新
      */
     private synchronized Token getJsSdkTicket() {
-        Token token = weixinDao.retrieveWeixinToken(this.weixinId, Token.WEIXIN_JS_SDK_TICKET);
+        Token token = weixinDao.retrieveWeixinToken(this.weixinId, Token.WEIXIN_JS_SDK_TICKET, 0);
 
         if (token == null || DateUtil.getPastSeconds(token.getCreateTime()) >= token.getExpires_in()) {
             token = refreshWeixinJsSdkTicket();

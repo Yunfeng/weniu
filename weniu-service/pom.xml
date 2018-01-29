@@ -4,7 +4,7 @@
   <parent>
     <groupId>cn.buk.api.wechat</groupId>
     <artifactId>weniu</artifactId>
-    <version>1.3.8-SNAPSHOT</version>
+    <version>1.3.23-SNAPSHOT</version>
   </parent>
 
   <name>weniu-service</name>

@@ -2,11 +2,14 @@ package cn.buk.api.wechat.service;
 
 import cn.buk.api.wechat.dto.WxMaterials;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.context.annotation.Bean;
 
-import static org.junit.Assert.*;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * Created by yfdai on 2017/6/7.
@@ -62,6 +65,14 @@ public class WeixinServiceTest {
     }
 
 
+    @Test
+    public void testJson() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("key", "value");
+        JSONObject obj = new JSONObject(map);
+
+        System.out.println(obj.toJSONString());
+    }
 //    @Test
 //    public void testImgUrl() {
 //        weixinService.testImgUrl();

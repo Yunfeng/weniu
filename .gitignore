@@ -2,5 +2,4 @@
 .idea
 *.iml
 *.versionsBackup
-pom.xml
 .svn

@@ -14,8 +14,6 @@ import java.util.List;
  */
 public interface WeixinService {
 
-//    void testImgUrl();
-
     int getWeixinId();
 
     /**

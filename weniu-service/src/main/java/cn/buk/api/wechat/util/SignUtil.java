@@ -24,7 +24,7 @@ public class SignUtil {
                   "&noncestr=" + nonce_str +
                   "&timestamp=" + timestamp +
                   "&url=" + url;
-        System.out.println(string1);
+//        System.out.println(string1);
 
         try
         {

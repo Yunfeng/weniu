@@ -31,7 +31,7 @@ public class WeixinDaoImpl extends AbstractDao implements WeixinDao {
         EntityManager em = createEntityManager();
         try {
             List<WeixinAccessTime> accessTimes = em.createQuery("select o from WeixinAccessTime o " +
-                    " where o.weixinOpenId = :weixinOpenId and o.weixinId = :weixinId ")
+                    " where o.weixinOpenId = :weixinOpenId and o.weixinId = :weixinId ", WeixinAccessTime.class)
                     .setParameter("weixinOpenId", weixinOpenId)
                     .setParameter("weixinId", weixinId)
                     .getResultList();
@@ -67,14 +67,15 @@ public class WeixinDaoImpl extends AbstractDao implements WeixinDao {
     }
 
     @Override
-    public Token retrieveWeixinToken(final int weixinId, final int weixinType) {
+    public Token retrieveWeixinToken(final int weixinId, final int weixinType, final int msgType) {
         EntityManager em = createEntityManager();
         try {
             List<Token> tokens = em.createQuery("select o from Token o " +
-                    "where o.weixinId = :weixinId and o.weixinType = :weixinType " +
-                    "order by o.id desc")
+                    "where o.weixinId = :weixinId and o.weixinType = :weixinType and o.msgType = :msgType " +
+                    "order by o.id desc", Token.class)
                     .setParameter("weixinId", weixinId)
                     .setParameter("weixinType", weixinType)
+                    .setParameter("msgType", msgType)
                     .setMaxResults(1)
                     .getResultList();
             if (tokens == null || tokens.size() == 0)
@@ -160,7 +161,7 @@ public class WeixinDaoImpl extends AbstractDao implements WeixinDao {
         EntityManager em = createEntityManager();
         try {
             List<WeixinUser> users =  em.createQuery("select o from WeixinUser o " +
-                    "where o.ownerId = :enterpriseId and o.weixinOpenId = :openId")
+                    "where o.ownerId = :enterpriseId and o.weixinOpenId = :openId", WeixinUser.class)
                     .setParameter("enterpriseId",enterpriseId)
                     .setParameter("openId", openId)
                     .getResultList();
@@ -183,7 +184,7 @@ public class WeixinDaoImpl extends AbstractDao implements WeixinDao {
         EntityManager em = createEntityManager();
         try {
             List<WeixinTemplate> list =  em.createQuery("select o from WeixinTemplate o " +
-                    "where o.ownerId = :ownerId and o.businessId = :id")
+                    "where o.ownerId = :ownerId and o.businessId = :id", WeixinTemplate.class)
                     .setParameter("ownerId",ownerId)
                     .setParameter("id", id)
                     .getResultList();
@@ -200,7 +201,7 @@ public class WeixinDaoImpl extends AbstractDao implements WeixinDao {
         EntityManager em = createEntityManager();
         try {
             List<WeixinTemplate> list =  em.createQuery("select o from WeixinTemplate o " +
-                    "where o.ownerId = :ownerId ")
+                    "where o.ownerId = :ownerId ", WeixinTemplate.class)
                     .setParameter("ownerId",ownerId)
                     .getResultList();
 
@@ -216,7 +217,7 @@ public class WeixinDaoImpl extends AbstractDao implements WeixinDao {
         EntityManager em = createEntityManager();
         try {
             return em.createQuery("select o from WeixinCustomMenu o " +
-                    "where o.enterpriseId = :enterpriseId order by o.level, o.parentId, o.id")
+                    "where o.enterpriseId = :enterpriseId order by o.level, o.parentId, o.id", WeixinCustomMenu.class)
                     .setParameter("enterpriseId", ownerId)
                     .getResultList();
 
@@ -406,6 +407,25 @@ public class WeixinDaoImpl extends AbstractDao implements WeixinDao {
         }
 
         return retCode;
+    }
+
+    @Override
+    public WeixinEntConfig getWeixinEntConfig(int enterpriseId, int msgType) {
+        EntityManager em = createEntityManager();
+        try {
+            List<WeixinEntConfig> list = em.createQuery("select o from WeixinEntConfig o " +
+                    " where o.enterpriseId = :enterpriseId and o.msgType = :msgType", WeixinEntConfig.class)
+                    .setParameter("enterpriseId", enterpriseId)
+                    .setParameter("msgType", msgType)
+                    .getResultList();
+
+            if (list == null || list.size() == 0)
+                return null;
+            else
+                return list.get(0);
+        } finally {
+            em.close();
+        }
     }
 
 }

@@ -21,7 +21,7 @@ public interface WeixinDao {
      *
      * @return
      */
-    Token retrieveWeixinToken(int weixinId, int weixinType);
+    Token retrieveWeixinToken(int weixinId, int weixinType, int msgType);
 
     /**
      * 保存Token
@@ -61,4 +61,12 @@ public interface WeixinDao {
     int createWxNews(WeixinNews o);
 
     int deleteWxNews(int enterpriseId, int id);
+
+    /**
+     * 获取企业微信的设置参数
+     * @param enterpriseId 企业ID
+     * @param msgType 消息类型
+     * @return
+     */
+    WeixinEntConfig getWeixinEntConfig(int enterpriseId, int msgType);
 }

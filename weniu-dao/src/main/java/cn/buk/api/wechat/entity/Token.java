@@ -11,9 +11,10 @@ import java.util.Date;
 public class Token {
 
     public static final int WEIXIN_SERVICE_TOKEN = 0; // 微信服务号 token
-    public static final int WEIXIN_ENT_TOKEN = 8; // 微信企业号 token
+    public static final int WORK_WEIXIN_TOKEN = 8; // 企业微信 token
 
     public static final int WEIXIN_JS_SDK_TICKET = 100; // 微信 js-sdk ticket
+    public static final int WORK_WEIXIN_JSAPI_TICKET = 108; // 企业微信 js-sdk ticket
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,6 +30,9 @@ public class Token {
      */
     @Column(name = "weixin_type")
     private int weixinType;
+
+    @Column(name = "msg_type")
+    private Integer msgType = 0;
 
     @Column(length=512)
     private String access_token;
@@ -85,5 +89,13 @@ public class Token {
 
     public void setWeixinType(int weixinType) {
         this.weixinType = weixinType;
+    }
+
+    public Integer getMsgType() {
+        return msgType == null ? 0 : msgType;
+    }
+
+    public void setMsgType(Integer msgType) {
+        this.msgType = msgType;
     }
 }
