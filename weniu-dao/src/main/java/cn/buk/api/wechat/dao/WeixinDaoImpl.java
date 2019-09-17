@@ -12,6 +12,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -423,6 +424,448 @@ public class WeixinDaoImpl extends AbstractDao implements WeixinDao {
                 return null;
             else
                 return list.get(0);
+        } finally {
+            em.close();
+        }
+    }
+
+    @Override
+    public List<WeixinGroup> listWeixinGroup(int weixinId) {
+        EntityManager em = createEntityManager();
+        try {
+            List<WeixinGroup> groups = em.createQuery("select o from WeixinGroup o " +
+                    " where o.weixinId = :weixinId ")
+                    .setParameter("weixinId", weixinId)
+                    .getResultList();
+
+            return groups == null ? new ArrayList<WeixinGroup>() : groups;
+        } finally {
+            em.close();
+        }
+    }
+
+    @Override
+    public WeixinGroup getWeixinGroup(int weixinId, int groupId) {
+        EntityManager em = createEntityManager();
+        try {
+            List<WeixinGroup> groups = em.createQuery("select o from WeixinGroup o " +
+                    " where o.weixinId = :weixinId " +
+                    " and o.groupId = :groupId")
+                    .setParameter("weixinId", weixinId)
+                    .setParameter("groupId", groupId)
+                    .getResultList();
+
+            return groups == null ? null : groups.get(0);
+        } finally {
+            em.close();
+        }
+    }
+
+    @Override
+    public List<WeixinUser> listWeixinUser(int weixinId) {
+        EntityManager em = createEntityManager();
+        try {
+            List<WeixinUser> users = em.createQuery("select o from WeixinUser o " +
+                    " where o.ownerId = :weixinId ")
+                    .setParameter("weixinId", weixinId)
+                    .getResultList();
+
+            return users == null ? new ArrayList<WeixinUser>() : users;
+
+        } finally {
+            em.close();
+        }
+    }
+
+    @Override
+    public int updateWeixinGroup(WeixinGroup weixinGroup) {
+        int retCode = 0;
+        EntityManager em = createEntityManager();
+        try {
+            em.getTransaction().begin();
+            em.merge(weixinGroup);
+            em.getTransaction().commit();
+
+            retCode = 1;
+        } catch (Exception ex) {
+            if (em.getTransaction().isActive())
+                em.getTransaction().rollback();
+            ex.printStackTrace();
+            retCode = -1;
+        } finally {
+            em.close();
+        }
+
+        return retCode;
+    }
+
+    @Override
+    public WeixinUser getWeixinUser(int weixinId, String weixinOpenId) {
+        EntityManager em = createEntityManager();
+        try {
+            List<WeixinUser> users = em.createQuery("select o from WeixinUser o " +
+                    " where o.ownerId = :weixinId " +
+                    " and o.weixinOpenId = :weixinOpenId")
+                    .setParameter("weixinId", weixinId)
+                    .setParameter("weixinOpenId", weixinOpenId)
+                    .getResultList();
+            WeixinUser user = users == null ? null : users.get(0);
+//            if (user != null && user.getGroupId() > -1) {
+//                user.setGroupId(getWeixinGroup(weixinId, user.getGroupId()));
+//            }
+            return user;
+        } finally {
+            em.close();
+        }
+    }
+
+    @Override
+    public WeixinUser getWeixinUser(int weixinId, int userId) {
+        EntityManager em = createEntityManager();
+        try {
+            List<WeixinUser> users = em.createQuery("select o from WeixinUser o " +
+                    " where o.ownerId = :weixinId " +
+                    " and o.id = :userId")
+                    .setParameter("weixinId", weixinId)
+                    .setParameter("userId", userId)
+                    .getResultList();
+            WeixinUser user = users == null ? null : users.get(0);
+            if (user != null && user.getGroupId() > -1) {
+//                user.setGroup(getWeixinGroup(weixinId, user.getGroupId()));
+            }
+            return user;
+        } finally {
+            em.close();
+        }
+    }
+
+    @Override
+    public int updateWeixinUser(WeixinUser user) {
+        int retCode = 0;
+        EntityManager em = createEntityManager();
+        try {
+            em.getTransaction().begin();
+            user.setLastUpdate(DateUtil.getCurDateTime());
+            em.merge(user);
+            em.getTransaction().commit();
+
+            retCode = 1;
+        } catch (Exception ex) {
+            if (em.getTransaction().isActive())
+                em.getTransaction().rollback();
+            ex.printStackTrace();
+            retCode = -1;
+        } finally {
+            em.close();
+        }
+
+        return retCode;
+    }
+
+    @Override
+    public int createWeixinGroup(WeixinGroup group) {
+        int retCode = 0;
+        EntityManager em = createEntityManager();
+        try {
+            em.getTransaction().begin();
+            em.persist(group);
+            em.getTransaction().commit();
+
+            retCode = 1;
+        } catch (Exception ex) {
+            if (em.getTransaction().isActive())
+                em.getTransaction().rollback();
+            ex.printStackTrace();
+            retCode = -1;
+        } finally {
+            em.close();
+        }
+
+        return retCode;
+    }
+
+    @Override
+    public int saveSuiteTicket(int enterpriseId, String suiteId, String suiteTicket, Date timeStamp) {
+        int retCode = 0;
+        EntityManager em = createEntityManager();
+        try {
+            em.getTransaction().begin();
+
+            WwProviderTicket ticket;
+            List<WwProviderTicket> tickets = em.createQuery("select o from WwProviderTicket o " +
+                    "where o.enterpriseId = :enterpriseId and o.suiteId = :suiteId", WwProviderTicket.class)
+                    .setParameter("enterpriseId", enterpriseId)
+                    .setParameter("suiteId", suiteId)
+                    .getResultList();
+            if (tickets.size() > 0) {
+                ticket = tickets.get(0);
+                ticket.setSuiteTicket(suiteTicket);
+                ticket.setTimeStamp(timeStamp);
+                ticket.setLastUpdate(DateUtil.getCurDateTime());
+                em.merge(ticket);
+            } else {
+                ticket = new WwProviderTicket();
+                ticket.setEnterpriseId(enterpriseId);
+                ticket.setSuiteId(suiteId);
+                ticket.setSuiteTicket(suiteTicket);
+                ticket.setTimeStamp(timeStamp);
+                em.persist(ticket);
+            }
+
+
+            em.getTransaction().commit();
+
+            retCode = ticket.getId();
+        } catch (Exception ex) {
+            if (em.getTransaction().isActive())
+                em.getTransaction().rollback();
+            ex.printStackTrace();
+            retCode = -1;
+        } finally {
+            em.close();
+        }
+
+        return retCode;
+    }
+
+    @Override
+    public WwProviderTicket getSuiteTicket(int enterpriseId, String suiteId) {
+        EntityManager em = createEntityManager();
+        try {
+            List<WwProviderTicket> tickets = em.createQuery("select o from WwProviderTicket o " +
+                    "where o.enterpriseId = :enterpriseId and o.suiteId = :suiteId", WwProviderTicket.class)
+                    .setParameter("enterpriseId", enterpriseId)
+                    .setParameter("suiteId", suiteId)
+                    .getResultList();
+            return tickets.size() > 0 ? tickets.get(0) : null;
+        } finally {
+            em.close();
+        }
+    }
+
+    @Override
+    public WwProviderToken retrieveWwProviderToken(int enterpriseId, String suiteId) {
+        EntityManager em = createEntityManager();
+        try {
+            List<WwProviderToken> tokens = em.createQuery("select o from WwProviderToken o " +
+                    "where o.enterpriseId = :enterpriseId and o.suiteId = :suiteId", WwProviderToken.class)
+                    .setParameter("enterpriseId", enterpriseId)
+                    .setParameter("suiteId", suiteId)
+                    .getResultList();
+            return tokens.size() > 0 ? tokens.get(0) : null;
+        } finally {
+            em.close();
+        }
+    }
+
+    @Override
+    public int saveWwProviderToken(int enterpriseId, String suiteId, String suiteAccessToken, int expiresIn) {
+        int retCode = 0;
+        EntityManager em = createEntityManager();
+        try {
+            em.getTransaction().begin();
+
+            WwProviderToken token;
+            List<WwProviderToken> tokens = em.createQuery("select o from WwProviderToken o " +
+                    "where o.enterpriseId = :enterpriseId and o.suiteId = :suiteId", WwProviderToken.class)
+                    .setParameter("enterpriseId", enterpriseId)
+                    .setParameter("suiteId", suiteId)
+                    .getResultList();
+            if (tokens.size() > 0) {
+                token = tokens.get(0);
+                token.setAccessToken(suiteAccessToken);
+                token.setExpiresIn(expiresIn);
+                token.setLastUpdate(DateUtil.getCurDateTime());
+                em.merge(token);
+            } else {
+                token = new WwProviderToken();
+                token.setEnterpriseId(enterpriseId);
+                token.setSuiteId(suiteId);
+                token.setAccessToken(suiteAccessToken);
+                token.setExpiresIn(expiresIn);
+                token.setLastUpdate(DateUtil.getCurDateTime());
+
+                em.persist(token);
+            }
+
+
+            em.getTransaction().commit();
+
+            retCode = token.getId();
+        } catch (Exception ex) {
+            if (em.getTransaction().isActive())
+                em.getTransaction().rollback();
+            ex.printStackTrace();
+            retCode = -1;
+        } finally {
+            em.close();
+        }
+
+        return retCode;
+    }
+
+    /**
+     * 保存授权企业的信息
+     * @param corpInfo
+     * @return
+     */
+    public int saveWwpAuthCorpInfo(WwProviderAuthCorpInfo corpInfo) {
+        int retCode = 0;
+        EntityManager em = createEntityManager();
+        try {
+            em.getTransaction().begin();
+
+            WwProviderAuthCorpInfo info;
+            List<WwProviderAuthCorpInfo> infos = em.createQuery("select o from WwProviderAuthCorpInfo o " +
+                    "where o.enterpriseId = :enterpriseId and o.suiteId = :suiteId and o.corpId = :corpId", WwProviderAuthCorpInfo.class)
+                    .setParameter("enterpriseId", corpInfo.getEnterpriseId())
+                    .setParameter("suiteId", corpInfo.getSuiteId())
+                    .setParameter("corpId", corpInfo.getCorpId())
+                    .getResultList();
+            if (infos.size() > 0) {
+                info = infos.get(0);
+                info.setStatus(corpInfo.getStatus());
+                info.setAccessToken(corpInfo.getAccessToken());
+                info.setExpiresIn(corpInfo.getExpiresIn());
+                info.setPermanentCode(corpInfo.getPermanentCode());
+                info.setLastUpdate(DateUtil.getCurDateTime());
+
+                em.merge(info);
+            } else {
+
+                em.persist(corpInfo);
+                info = corpInfo;
+            }
+
+
+            em.getTransaction().commit();
+
+            retCode = info.getId();
+        } catch (Exception ex) {
+            if (em.getTransaction().isActive())
+                em.getTransaction().rollback();
+            ex.printStackTrace();
+            retCode = -1;
+        } finally {
+            em.close();
+        }
+
+        return retCode;
+    }
+
+    @Override
+    public WwProviderAuthCorpInfo getWwpAuthCorpInfo(int enterpriseId, String suiteId, String corpId) {
+        EntityManager em = createEntityManager();
+        try {
+            List<WwProviderAuthCorpInfo> infos = em.createQuery("select o from WwProviderAuthCorpInfo o " +
+                    "where o.enterpriseId = :enterpriseId and o.suiteId = :suiteId and o.corpId = :corpId", WwProviderAuthCorpInfo.class)
+                    .setParameter("enterpriseId", enterpriseId)
+                    .setParameter("suiteId", suiteId)
+                    .setParameter("corpId", corpId)
+                    .getResultList();
+            return infos.size() > 0 ? infos.get(0) : null;
+        } finally {
+            em.close();
+        }
+    }
+
+    @Override
+    public int updateWwpAuthCorpAccessToken(int enterpriseId, String authCorpId, String access_token, int expires_in) {
+        int retCode = 0;
+        EntityManager em = createEntityManager();
+        try {
+            em.getTransaction().begin();
+
+            WwProviderAuthCorpInfo token;
+            List<WwProviderAuthCorpInfo> tokens = em.createQuery("select o from WwProviderAuthCorpInfo o " +
+                    "where o.enterpriseId = :enterpriseId and o.corpId = :corpId", WwProviderAuthCorpInfo.class)
+                    .setParameter("enterpriseId", enterpriseId)
+                    .setParameter("corpId", authCorpId)
+                    .getResultList();
+            if (tokens.size() > 0) {
+                token = tokens.get(0);
+                token.setAccessToken(access_token);
+                token.setExpiresIn(expires_in);
+                token.setLastUpdate(DateUtil.getCurDateTime());
+                em.merge(token);
+            } else {
+                token = new WwProviderAuthCorpInfo();
+                token.setEnterpriseId(enterpriseId);
+                token.setCorpId(authCorpId);
+                token.setAccessToken(access_token);
+                token.setExpiresIn(expires_in);
+                token.setLastUpdate(DateUtil.getCurDateTime());
+
+                em.persist(token);
+            }
+
+
+            em.getTransaction().commit();
+
+            retCode = token.getId();
+        } catch (Exception ex) {
+            if (em.getTransaction().isActive())
+                em.getTransaction().rollback();
+            ex.printStackTrace();
+            retCode = -1;
+        } finally {
+            em.close();
+        }
+
+        return retCode;
+    }
+
+    @Override
+    public int cancelSuiteAuthInfo(int enterpriseId, String suiteId, String authCorpId) {
+        int retCode = 0;
+        EntityManager em = createEntityManager();
+        try {
+            em.getTransaction().begin();
+
+            List<WwProviderAuthCorpInfo> infos = em.createQuery("select o from WwProviderAuthCorpInfo o " +
+                    "where o.enterpriseId = :enterpriseId and o.suiteId = :suiteId and o.corpId = :corpId", WwProviderAuthCorpInfo.class)
+                    .setParameter("enterpriseId", enterpriseId)
+                    .setParameter("suiteId", suiteId)
+                    .setParameter("corpId", authCorpId)
+                    .getResultList();
+            if (infos.size() == 1) {
+                WwProviderAuthCorpInfo info = infos.get(0);
+                info.setStatus(0);
+                info.setLastUpdate(DateUtil.getCurDateTime());
+
+                em.merge(info);
+            }
+
+            em.getTransaction().commit();
+
+            retCode = 1;
+        } catch (Exception ex) {
+            if (em.getTransaction().isActive())
+                em.getTransaction().rollback();
+            ex.printStackTrace();
+            retCode = -1;
+        } finally {
+            em.close();
+        }
+
+        return retCode;
+    }
+
+    /**
+     * 获取微信服务号的API配置
+     * @param enterpriseId
+     * @return
+     */
+    public WeixinServiceConfig getWeixinServiceConfig(int enterpriseId) {
+        EntityManager em = createEntityManager();
+
+        try {
+            List<WeixinServiceConfig> list = em.createQuery("select o from WeixinServiceConfig o " +
+                    "where o.enterpriseId = :enterpriseId and o.msgType = :msgType", WeixinServiceConfig.class)
+                    .setParameter("enterpriseId", enterpriseId)
+                    .setParameter("msgType", 0)
+                    .getResultList();
+            return list.size() == 0 ? null: list.get(0);
         } finally {
             em.close();
         }

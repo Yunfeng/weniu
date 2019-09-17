@@ -3,6 +3,7 @@ package cn.buk.api.wechat.dao;
 import cn.buk.api.wechat.entity.*;
 import cn.buk.common.sc.CommonSearchCriteria;
 
+import java.util.Date;
 import java.util.List;
 
 public interface WeixinDao {
@@ -69,4 +70,43 @@ public interface WeixinDao {
      * @return
      */
     WeixinEntConfig getWeixinEntConfig(int enterpriseId, int msgType);
+
+    List<WeixinGroup> listWeixinGroup(int weixinId);
+
+    WeixinGroup getWeixinGroup(int weixinId, int groupId);
+
+    List<WeixinUser> listWeixinUser(int weixinId);
+
+    int updateWeixinGroup(WeixinGroup weixinGroup);
+
+    WeixinUser getWeixinUser(int weixinId, String weixinOpenId);
+
+    WeixinUser getWeixinUser(int weixinId, int userId);
+
+    int updateWeixinUser(WeixinUser user);
+
+    int createWeixinGroup(WeixinGroup group);
+
+    int saveSuiteTicket(int enterpriseId, String suiteId, String suiteTicket, Date timeStamp);
+
+    WwProviderTicket getSuiteTicket(int enterpriseId, String suiteId);
+
+    WwProviderToken retrieveWwProviderToken(int enterpriseId, String suiteId);
+
+    int saveWwProviderToken(int enterpriseId, String suiteId, String suiteAccessToken, int expiresIn);
+
+    int saveWwpAuthCorpInfo(WwProviderAuthCorpInfo corpInfo);
+
+    WwProviderAuthCorpInfo getWwpAuthCorpInfo(int enterpriseId, String suiteId, String corpId);
+
+    int updateWwpAuthCorpAccessToken(int enterpriseId, String authCorpId, String access_token, int expires_in);
+
+    int cancelSuiteAuthInfo(int enterpriseId, String suiteId, String authCorpId);
+
+    /**
+     * 获取微信服务号的配置信息
+     * @param enterpriseId
+     * @return
+     */
+    WeixinServiceConfig getWeixinServiceConfig(int enterpriseId);
 }

@@ -1,5 +1,7 @@
 package cn.buk.api.wechat.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import javax.persistence.*;
 import java.util.Date;
 
@@ -46,18 +48,43 @@ public class WeixinUser {
     private String country;
     private String headimgurl;
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @Temporal(TemporalType.TIMESTAMP)
     private Date subscribe_time;
 
     @Column(name="weixin_union_id")
     private String unionid;
 
+    /**
+     * 公众号运营者对粉丝的备注，公众号运营者可在微信公众平台用户管理界面对粉丝添加备注
+     */
+    private String remark;
+
+    /**
+     * 返回用户关注的渠道来源
+     * ADD_SCENE_SEARCH 公众号搜索
+     * ADD_SCENE_ACCOUNT_MIGRATION 公众号迁移
+     * ADD_SCENE_PROFILE_CARD 名片分享，
+     * ADD_SCENE_QR_CODE 扫描二维码，
+     * ADD_SCENEPROFILE LINK 图文页内名称点击，
+     * ADD_SCENE_PROFILE_ITEM 图文页右上角菜单，
+     * ADD_SCENE_PAID 支付后关注，
+     * ADD_SCENE_OTHERS 其他
+     */
+    @Column(name = "subscribe_scene")
+    private String subscribe_scene;
+
+    @Column(name="group_id")
+    private Integer groupId;
+
     @Temporal(TemporalType.TIMESTAMP)
     @Column(insertable = false, updatable = false)
     private Date createTime;
 
-    @Column(name="group_id")
-    private Integer groupId;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "last_update", insertable = false)
+    private Date lastUpdate;
 
     public String getWeixinOpenId() {
         return weixinOpenId;
@@ -186,5 +213,29 @@ public class WeixinUser {
 
     public void setOwnerId(int ownerId) {
         this.ownerId = ownerId;
+    }
+
+    public String getRemark() {
+        return remark;
+    }
+
+    public void setRemark(String remark) {
+        this.remark = remark;
+    }
+
+    public String getSubscribe_scene() {
+        return subscribe_scene;
+    }
+
+    public void setSubscribe_scene(String subscribe_scene) {
+        this.subscribe_scene = subscribe_scene;
+    }
+
+    public Date getLastUpdate() {
+        return lastUpdate;
+    }
+
+    public void setLastUpdate(Date lastUpdate) {
+        this.lastUpdate = lastUpdate;
     }
 }

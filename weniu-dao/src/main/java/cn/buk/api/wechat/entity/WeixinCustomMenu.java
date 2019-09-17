@@ -50,7 +50,7 @@ public class WeixinCustomMenu {
     private String url; // type = view
 
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "create_time")
+    @Column(name = "create_time", insertable = false, updatable = false)
     private Date createTime;
 
     public int getId() {

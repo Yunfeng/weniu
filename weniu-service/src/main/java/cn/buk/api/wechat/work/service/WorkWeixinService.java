@@ -1,9 +1,26 @@
 package cn.buk.api.wechat.work.service;
 
 import cn.buk.api.wechat.dto.JsSdkParam;
+import cn.buk.api.wechat.entity.WwProviderAuthCorpInfo;
 import cn.buk.api.wechat.work.dto.*;
 
+import java.util.Date;
+
 public interface WorkWeixinService {
+
+
+    /**
+     * 校验消息签名，也就是校验来源
+     * @param enterpriseId 企业ID
+     * @param msgType 消息类型：默认应用，通讯录，外部联系人
+     * @param corpId 实际使用的corpId
+     * @param signature 签名
+     * @param timestamp 时间戳
+     * @param nonce 随机字符串
+     * @param msg_encrypt 加密的消息
+     * @return
+     */
+    String verifyWorkWeixinSource(int enterpriseId, int msgType, final String corpId, String signature, String timestamp, String nonce, String msg_encrypt) throws Exception;
 
     /**
      * 根据code获取成员信息
@@ -43,6 +60,14 @@ public interface WorkWeixinService {
      * @return
      */
     ListDepartmentResponse listDepartment(int enterpriseId);
+
+    /**
+     * 获取部门列表（应用可见的）
+     * @param enterpriseId
+     * @param msgType
+     * @return
+     */
+    ListDepartmentResponse listDepartment(int enterpriseId, int msgType);
 
     /**
      * 创建部门
@@ -85,4 +110,14 @@ public interface WorkWeixinService {
      */
     BaseResponse authUserSuccessfully(int enterpriseId, String userId);
 
+    String getExternalContact(int enterpriseId, String code);
+
+    /**
+     * 保存token
+     * @param enterpriseId
+     * @param accessToken
+     * @param expiresIn
+     * @return
+     */
+    int saveToken(int enterpriseId, String accessToken, int expiresIn);
 }

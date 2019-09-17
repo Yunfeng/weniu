@@ -1,74 +1,119 @@
 package cn.buk.api.wechat.work.service;
 
-import cn.buk.api.wechat.dao.WeixinDao;
 import cn.buk.api.wechat.dto.JsSdkParam;
-import cn.buk.api.wechat.entity.Token;
-import cn.buk.api.wechat.entity.WeixinEntConfig;
-import cn.buk.api.wechat.entity.WeixinMaterial;
+import cn.buk.api.wechat.entity.*;
 import cn.buk.api.wechat.util.HttpUtil;
 import cn.buk.api.wechat.util.SignUtil;
 import cn.buk.api.wechat.work.dto.*;
 import cn.buk.util.DateUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.qq.weixin.mp.aes.WXBizMsgCrypt;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class WorkWeixinServiceImpl implements WorkWeixinService {
+import static cn.buk.api.wechat.entity.WeixinEntConfig.WORK_WX_DEFAULT;
+
+public class WorkWeixinServiceImpl extends BaseService implements WorkWeixinService {
 
     private static Logger logger = Logger.getLogger(WorkWeixinServiceImpl.class);
 
-    @Autowired
-    private WeixinDao weixinDao;
+    /**
+     * 是否在控制台输出
+     */
+    private final boolean outputJson;
 
-    private Token getToken(int enterpriseId, boolean forced) {
-        return getToken(enterpriseId, WeixinEntConfig.WORK_WX_DEFAULT, forced);
+    public WorkWeixinServiceImpl() {
+        this.outputJson = false;
     }
 
-    private Token getToken(final int enterpriseId, final int msgType, boolean forced) {
-        WeixinEntConfig entConfig = weixinDao.getWeixinEntConfig(enterpriseId, msgType);
+    public WorkWeixinServiceImpl(boolean outputJson) {
+        this.outputJson = outputJson;
+    }
 
-        Token token = weixinDao.retrieveWeixinToken(enterpriseId, Token.WORK_WEIXIN_TOKEN, msgType);
+
+    /**
+     * 获取企业微信第三方应用凭证
+     * @param enterpriseId
+     */
+    private WwProviderToken getSuiteAccessToken(final int enterpriseId) {
+        WeixinEntConfig cfg = weixinDao.getWeixinEntConfig(enterpriseId, WeixinEntConfig.WORK_WX_PROVIDER_APP_SUITE_ID);
+
+        WwProviderToken token = weixinDao.retrieveWwProviderToken(enterpriseId, cfg.getCorpId());
         long pastSeconds = 0;
         if (token != null) {
-            pastSeconds = DateUtil.getPastSeconds(token.getCreateTime());
+            pastSeconds = DateUtil.getPastSeconds(token.getLastUpdate());
+            if (pastSeconds < token.getExpiresIn()) return token;
         }
 
-        if (forced || token == null || pastSeconds >= token.getExpires_in()) {
-            //去获取新token
-            //https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=APPID&secret=APPSECRET
-            String url = "https://qyapi.weixin.qq.com/cgi-bin/gettoken?";
 
-            List<NameValuePair> params = new ArrayList<>();
+        WwProviderTicket ticket = weixinDao.getSuiteTicket(enterpriseId, cfg.getCorpId());
 
-            params.add(new BasicNameValuePair("corpid", entConfig.getCorpId()));
-            params.add(new BasicNameValuePair("corpsecret", entConfig.getSecret()));
+        final String suiteId = cfg.getCorpId();
 
-            String jsonStr = HttpUtil.getUrl(url, params);
+        //去获取新token
+        final String url = "https://qyapi.weixin.qq.com/cgi-bin/service/get_suite_token";
 
-            //判断返回结果
-            JSONObject param = JSONObject.parseObject(jsonStr);
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("suite_id", suiteId);
+        jsonObject.put("suite_secret", cfg.getSecret());
+        jsonObject.put("suite_ticket", ticket.getSuiteTicket());
 
-            token = new Token();
-            token.setAccess_token((String) param.get("access_token"));
-            token.setExpires_in((Integer) param.get("expires_in"));
-            token.setWeixinId(enterpriseId);
-            token.setWeixinType(Token.WORK_WEIXIN_TOKEN);
-            token.setMsgType(msgType);
+        String strJson = jsonObject.toJSONString();
+        logger.info(strJson);
 
-            weixinDao.createWeixinToken(token);
+        String jsonStr = HttpUtil.postUrl(url, strJson);
+        logger.info(jsonStr);
+
+        //判断返回结果
+        JSONObject param = JSONObject.parseObject(jsonStr);
+
+//        {
+//            "errcode":0 ,
+//                "errmsg":"ok" ,
+//                "suite_access_token":"61W3mEpU66027wgNZ_MhGHNQDHnFATkDa9-2llMBjUwxRSNPbVsMmyD-yq8wZETSoE5NQgecigDrSHkPtIYA",
+//                "expires_in":7200
+//        }
+
+//        token = new Token();
+        String suiteAccessToken = (String) param.get("suite_access_token");
+        String errmsg = (String) param.get("errmsg");
+
+        Object obj = param.get("expires_in");
+        int expiresIn = obj == null ? 0 : (int)obj;
+
+        obj = param.get("errcode");
+        int errcode = obj == null ? 0 : (int)obj;
+
+        if (errcode == 0) {
+            weixinDao.saveWwProviderToken(enterpriseId, suiteId, suiteAccessToken, expiresIn);
+        } else {
+            logger.error(errmsg);
         }
 
+        token = weixinDao.retrieveWwProviderToken(enterpriseId, cfg.getCorpId());
         return token;
     }
 
+
+    @Override
+    public String verifyWorkWeixinSource(final int enterpriseId, final int msgType, final String corpId, final String signature, final String timestamp,
+                                         final String nonce, final String msg_encrypt) throws Exception {
+        WeixinEntConfig entConfig = weixinDao.getWeixinEntConfig(enterpriseId, msgType);
+
+        String corpId1 = corpId == null ? entConfig.getCorpId() : corpId;
+
+        WXBizMsgCrypt wxcpt = new WXBizMsgCrypt(entConfig.getToken(), entConfig.getEncodingAESKey(), corpId1);
+
+        String sEchoStr = wxcpt.VerifyURL(signature, timestamp, nonce, msg_encrypt);
+        return sEchoStr;
+    }
 
     public UserInfoResponse getUserInfo(int enterpriseId, String code) {
         Token token = getToken(enterpriseId, false);
@@ -80,7 +125,9 @@ public class WorkWeixinServiceImpl implements WorkWeixinService {
 
         String jsonStr = HttpUtil.getUrl(url, params);
 
-        logger.debug(jsonStr);
+        if (this.outputJson) {
+            System.out.println(jsonStr);
+        }
 
         return JSON.parseObject(jsonStr, UserInfoResponse.class);
     }
@@ -95,7 +142,9 @@ public class WorkWeixinServiceImpl implements WorkWeixinService {
         String jsonBody = new JSONObject(map).toJSONString();
 
         String jsonStr = HttpUtil.postUrl(url, jsonBody);
-        logger.debug(jsonStr);
+        if (this.outputJson) {
+            System.out.println(jsonStr);
+        }
 
         return JSON.parseObject(jsonStr, UserDetailResponse.class);
     }
@@ -106,7 +155,7 @@ public class WorkWeixinServiceImpl implements WorkWeixinService {
     public JsSdkParam getJsSdkConfig(final int enterpriseId, String jsapi_url) {
         JsSdkParam jsapiParam = new JsSdkParam();
 
-        WeixinEntConfig entConfig = weixinDao.getWeixinEntConfig(enterpriseId, WeixinEntConfig.WORK_WX_DEFAULT);
+        WeixinEntConfig entConfig = weixinDao.getWeixinEntConfig(enterpriseId, WORK_WX_DEFAULT);
         jsapiParam.setAppId(entConfig.getCorpId());
 
         Token ticket = getJsSdkTicket(enterpriseId);
@@ -181,12 +230,30 @@ public class WorkWeixinServiceImpl implements WorkWeixinService {
 
         return ticket;
     }
-    @Override
+
+    /**
+     * 获取部门列表（通讯录权限）
+     * @param enterpriseId
+     * @return
+     */
     public ListDepartmentResponse listDepartment(int enterpriseId) {
-        Token token = getToken(enterpriseId, WeixinEntConfig.WORK_WX_CONTACTS, false);
+        return this.listDepartment(enterpriseId, WeixinEntConfig.WORK_WX_CONTACTS);
+    }
+
+    /**
+     * 获取部门列表（应用可见的）
+     * @param enterpriseId
+     * @param msgType
+     * @return
+     */
+    public ListDepartmentResponse listDepartment(final int enterpriseId, final int msgType) {
+        Token token = getToken(enterpriseId, msgType, false);
         final String url = "https://qyapi.weixin.qq.com/cgi-bin/department/list?access_token=" + token.getAccess_token();
 
         String jsonStr = HttpUtil.getUrl(url, null);
+        if (this.outputJson) {
+            System.out.println(jsonStr);
+        }
 
         return JSON.parseObject(jsonStr, ListDepartmentResponse.class);
     }
@@ -199,6 +266,9 @@ public class WorkWeixinServiceImpl implements WorkWeixinService {
 
         String jsonBody = JSON.toJSON(dept).toString();
         String jsonStr = HttpUtil.postUrl(url, jsonBody);
+        if (this.outputJson) {
+            System.out.println(jsonStr);
+        }
 
         return JSON.parseObject(jsonStr, CreateDepartmentResponse.class);
     }
@@ -211,6 +281,9 @@ public class WorkWeixinServiceImpl implements WorkWeixinService {
 
         String jsonBody = JSON.toJSON(dept).toString();
         String jsonStr = HttpUtil.postUrl(url, jsonBody);
+        if (this.outputJson) {
+            System.out.println(jsonStr);
+        }
 
         return JSON.parseObject(jsonStr, BaseResponse.class);
     }
@@ -222,6 +295,9 @@ public class WorkWeixinServiceImpl implements WorkWeixinService {
         final String url = "https://qyapi.weixin.qq.com/cgi-bin/department/delete?access_token=" + token.getAccess_token() + "&id=" + id;
 
         String jsonStr = HttpUtil.getUrl(url, null);
+        if (this.outputJson) {
+            System.out.println(jsonStr);
+        }
 
         return JSON.parseObject(jsonStr, BaseResponse.class);
     }
@@ -234,6 +310,9 @@ public class WorkWeixinServiceImpl implements WorkWeixinService {
 
         String jsonBody = JSON.toJSON(user).toString();
         String jsonStr = HttpUtil.postUrl(url, jsonBody);
+        if (this.outputJson) {
+            System.out.println(jsonStr);
+        }
 
         return JSON.parseObject(jsonStr, BaseResponse.class);
     }
@@ -246,6 +325,9 @@ public class WorkWeixinServiceImpl implements WorkWeixinService {
 
         String jsonBody = JSON.toJSON(user).toString();
         String jsonStr = HttpUtil.postUrl(url, jsonBody);
+        if (this.outputJson) {
+            System.out.println(jsonStr);
+        }
 
         return JSON.parseObject(jsonStr, BaseResponse.class);
     }
@@ -257,6 +339,9 @@ public class WorkWeixinServiceImpl implements WorkWeixinService {
         final String url = "https://qyapi.weixin.qq.com/cgi-bin/user/get?access_token=" + token.getAccess_token() + "&userid=" + userId;
 
         String jsonStr = HttpUtil.getUrl(url, null);
+        if (this.outputJson) {
+            System.out.println(jsonStr);
+        }
 
         return JSON.parseObject(jsonStr, WwUser.class);
     }
@@ -268,6 +353,9 @@ public class WorkWeixinServiceImpl implements WorkWeixinService {
         final String url = "https://qyapi.weixin.qq.com/cgi-bin/user/delete?access_token=" + token.getAccess_token() + "&userid=" + userId;
 
         String jsonStr = HttpUtil.getUrl(url, null);
+        if (this.outputJson) {
+            System.out.println(jsonStr);
+        }
 
         return JSON.parseObject(jsonStr, BaseResponse.class);
     }
@@ -279,6 +367,9 @@ public class WorkWeixinServiceImpl implements WorkWeixinService {
         final String url = "https://qyapi.weixin.qq.com/cgi-bin/user/list?access_token=" + token.getAccess_token() + "&department_id=" + deptId;
 
         String jsonStr = HttpUtil.getUrl(url, null);
+        if (this.outputJson) {
+            System.out.println(jsonStr);
+        }
 
         return JSON.parseObject(jsonStr, ListUserResponse.class);
     }
@@ -288,8 +379,32 @@ public class WorkWeixinServiceImpl implements WorkWeixinService {
         Token token = getToken(enterpriseId, WeixinEntConfig.WORK_WX_CONTACTS, false);
         final String url = "https://qyapi.weixin.qq.com/cgi-bin/user/authsucc?access_token=" + token.getAccess_token() + "&userId=" + userId;
         String jsonStr = HttpUtil.getUrl(url, null);
+        if (this.outputJson) {
+            System.out.println(jsonStr);
+        }
 
         return JSON.parseObject(jsonStr, BaseResponse.class);
+    }
+
+    @Override
+    public String getExternalContact(final int enterpriseId, final String code) {
+        Token token = getToken(enterpriseId, WeixinEntConfig.WORK_WX_EXTERNAL_CONTACTS, false);
+
+        final String url = "https://qyapi.weixin.qq.com/cgi-bin/crm/get_external_contact?access_token=" + token.getAccess_token() + "&code=" + code;
+
+        return HttpUtil.getUrl(url, null);
+    }
+
+    @Override
+    public int saveToken(int enterpriseId, String accessToken, int expiresIn) {
+        Token token = new Token();
+        token.setAccess_token(accessToken);
+        token.setExpires_in(expiresIn);
+        token.setWeixinId(enterpriseId);
+        token.setWeixinType(Token.WORK_WEIXIN_TOKEN);
+        token.setMsgType(WORK_WX_DEFAULT);
+
+        return weixinDao.createWeixinToken(token);
     }
 
 }

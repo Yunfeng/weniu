@@ -2,6 +2,10 @@ package cn.buk.api.wechat.work.dto;
 
 public class UserDetailResponse {
 
+    private int errcode;
+
+    private String errmsg;
+
     private String userid;
 
     private String name;
@@ -17,6 +21,10 @@ public class UserDetailResponse {
     private String email;
 
     private String avatar;
+
+    private String corpid;
+
+    private String qr_code;
 
     public String getUserid() {
         return userid;
@@ -80,5 +88,37 @@ public class UserDetailResponse {
 
     public void setAvatar(String avatar) {
         this.avatar = avatar;
+    }
+
+    public int getErrcode() {
+        return errcode;
+    }
+
+    public void setErrcode(int errcode) {
+        this.errcode = errcode;
+    }
+
+    public String getErrmsg() {
+        return errmsg;
+    }
+
+    public void setErrmsg(String errmsg) {
+        this.errmsg = errmsg;
+    }
+
+    public String getCorpid() {
+        return corpid;
+    }
+
+    public void setCorpid(String corpid) {
+        this.corpid = corpid;
+    }
+
+    public String getQr_code() {
+        return qr_code;
+    }
+
+    public void setQr_code(String qr_code) {
+        this.qr_code = qr_code;
     }
 }

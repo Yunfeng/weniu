@@ -5,6 +5,10 @@ package cn.buk.api.wechat.dto;
  */
 public class WeixinUserInfo {
 
+    private int errcode;
+
+    private String errmsg;
+
     private int subscribe;
 
     private String openid;
@@ -29,9 +33,7 @@ public class WeixinUserInfo {
 
     private int groupid;
 
-    private int errcode;
-
-    private String errmsg;
+    private String subscribe_scene;
 
     public int getSubscribe() {
         return subscribe;
@@ -143,5 +145,13 @@ public class WeixinUserInfo {
 
     public void setErrmsg(String errmsg) {
         this.errmsg = errmsg;
+    }
+
+    public String getSubscribe_scene() {
+        return subscribe_scene;
+    }
+
+    public void setSubscribe_scene(String subscribe_scene) {
+        this.subscribe_scene = subscribe_scene;
     }
 }

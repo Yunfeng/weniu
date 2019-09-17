@@ -14,6 +14,8 @@ public class UserInfoResponse {
     //企业成员授权时返回
     private String userId;
 
+    private String corpId;
+
     private String user_ticket; //最大512字节
 
     private int expires_in; // 秒
@@ -72,5 +74,13 @@ public class UserInfoResponse {
 
     public void setExpires_in(int expires_in) {
         this.expires_in = expires_in;
+    }
+
+    public String getCorpId() {
+        return corpId;
+    }
+
+    public void setCorpId(String corpId) {
+        this.corpId = corpId;
     }
 }

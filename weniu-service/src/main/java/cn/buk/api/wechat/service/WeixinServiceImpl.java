@@ -5,10 +5,13 @@ import cn.buk.api.wechat.dao.WeixinDao;
 import cn.buk.api.wechat.dto.*;
 import cn.buk.api.wechat.entity.*;
 import cn.buk.api.wechat.util.EncoderHandler;
+import cn.buk.api.wechat.util.FileUtil;
 import cn.buk.api.wechat.util.HttpUtil;
 import cn.buk.api.wechat.util.SignUtil;
 import cn.buk.common.sc.CommonSearchCriteria;
 import cn.buk.util.DateUtil;
+import cn.buk.common.JsonResult;
+import cn.buk.util.StringUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -27,10 +30,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -143,27 +143,6 @@ public class WeixinServiceImpl implements WeixinService {
     }
 
     /***
-     * 获取HTML内容
-     *
-     * @param url
-     * @return
-     * @throws Exception
-     */
-    private String getHTML(String url) throws Exception {
-        URL uri = new URL(url);
-        URLConnection connection = uri.openConnection();
-        InputStream in = connection.getInputStream();
-        byte[] buf = new byte[1024];
-        int length = 0;
-        StringBuffer sb = new StringBuffer();
-        while ((length = in.read(buf, 0, buf.length)) > 0) {
-            sb.append(new String(buf, ECODING));
-        }
-        in.close();
-        return sb.toString();
-    }
-
-    /***
      * 获取ImageUrl地址
      *
      * @param HTML
@@ -222,35 +201,45 @@ public class WeixinServiceImpl implements WeixinService {
         }
     }
 
-    @Value("${Weixin_Id}")
-    private int weixinId;
-
-    /**
-     * 以下三个参数是微信接口需要用到的
-     */
-    @Value("${Weixin_AppId}")
-    private String appId;
-
-    @Value("${Weixin_AppSecret}")
-    private String appSecret;
-
-    @Value("${Weixin_Token}")
-    private String weixinToken;
+//    @Value("${Weixin_Id}")
+//    private int weixinId;
+//
+//    /**
+//     * 以下三个参数是微信接口需要用到的
+//     */
+//    @Value("${Weixin_AppId}")
+//    private String appId;
+//
+//    @Value("${Weixin_AppSecret}")
+//    private String appSecret;
+//
+//    @Value("${Weixin_Token}")
+//    private String weixinToken;
 
 
     @Autowired
     private WeixinDao weixinDao;
 
 
-    public String getAppid() {
-        return this.appId;
+    private WeixinServiceConfig getWeixinServiceConfig(int enterpriseId) {
+        return weixinDao.getWeixinServiceConfig(enterpriseId);
     }
 
-    public JsSdkParam getJsSdkConfig(String jsapi_url) {
-        JsSdkParam jsapiParam = new JsSdkParam();
-        jsapiParam.setAppId(this.appId);
+    private String getAppToken(int enterpriseId) {
+        WeixinServiceConfig config = getWeixinServiceConfig(enterpriseId);
+        return config == null ? null : config.getToken();
+    }
 
-        Token ticket = getJsSdkTicket();
+    private String getAppId(int enterpriseId) {
+        WeixinServiceConfig config = getWeixinServiceConfig(enterpriseId);
+        return config == null ? null : config.getAppId();
+    }
+
+    public JsSdkParam getJsSdkConfig(int enterpriseId, String jsapi_url) {
+        JsSdkParam jsapiParam = new JsSdkParam();
+        jsapiParam.setAppId(getAppId(enterpriseId));
+
+        Token ticket = getJsSdkTicket(enterpriseId);
 
         // 3. 签名
         Map<String, String> ret = SignUtil.sign(ticket.getAccess_token(), jsapi_url);
@@ -266,12 +255,14 @@ public class WeixinServiceImpl implements WeixinService {
     /**
      * @param weixinOauthCode code说明 ： code作为换取access_token的票据，每次用户授权带上的code将不一样，code只能使用一次，5分钟未被使用自动过期。
      */
-    public WeixinOauthToken getOauthToken(final String weixinOauthCode) {
+    public WeixinOauthToken getOauthToken(final int enterpriseId, final String weixinOauthCode) {
         final String url = WX_API_OAUTH;
 
+        WeixinServiceConfig config = getWeixinServiceConfig(enterpriseId);
+
         List<NameValuePair> params = new ArrayList<>();
-        params.add(new BasicNameValuePair("appid", appId));
-        params.add(new BasicNameValuePair("secret", appSecret));
+        params.add(new BasicNameValuePair("appid", config.getAppId()));
+        params.add(new BasicNameValuePair("secret", config.getAppSecret()));
         params.add(new BasicNameValuePair("code", weixinOauthCode));
         params.add(new BasicNameValuePair("grant_type", "authorization_code"));
 
@@ -288,7 +279,7 @@ public class WeixinServiceImpl implements WeixinService {
             token.setScope((String) param.get("scope"));
             token.setExpires_in((Integer) param.get("expires_in"));
 
-            token.setWeixinId(this.weixinId);
+            token.setWeixinId(enterpriseId);
             weixinDao.createWeixinOauthToken(token);
 
             return token;
@@ -298,31 +289,10 @@ public class WeixinServiceImpl implements WeixinService {
     }
 
 
-    public void testImgUrl() {
-        //获得html文本内容
-        String HTML = null;
-        try {
-            HTML = this.getHTML(URL);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        //获取图片标签
-        List<String> imgUrl = this.getImageUrl(HTML);
-        //获取图片src地址
-        List<String> imgSrc = this.getImageSrc(imgUrl);
-        //下载图片
-        //this.Download(imgSrc);
-    }
-
-    @Override
-    public int getWeixinId() {
-        return this.weixinId;
-    }
-
-    public boolean verifyWeixinSource(String signature, String timestamp, String nonce) {
+    public boolean verifyWeixinSource(int enterpriseId, String signature, String timestamp, String nonce) {
         try {
             ArrayList<String> al = new ArrayList<>();
-            al.add(this.weixinToken);
+            al.add(getAppToken(enterpriseId));
             al.add(timestamp);
             al.add(nonce);
             Collections.sort(al);
@@ -344,11 +314,15 @@ public class WeixinServiceImpl implements WeixinService {
     /**
      * 获取微信自定义菜单
      */
-    public String getCustomMenu() {
+    /**
+     *
+     * @param enterpriseId 需要查询的enterpriseId; 否则使用默认的
+     * @return
+     */
+    public String getCustomMenu(final int enterpriseId) {
         final String url = WX_API_MENU_INFO;
 
-
-        Token token = getToken();
+        Token token = getToken(enterpriseId);
 
         List<NameValuePair> params = new ArrayList<>();
         params.add(new BasicNameValuePair("access_token", token.getAccess_token()));
@@ -368,10 +342,10 @@ public class WeixinServiceImpl implements WeixinService {
      * 从数据库中读取微信自定义菜单设置，
      * 创建微信自定义菜单
      */
-    public String createCustomMenu() {
+    public BaseResponse createCustomMenu(final int enterpriseId) {
         WeixinMenu wm = new WeixinMenu();
 
-        List<WeixinCustomMenu> menus = weixinDao.searchCustomMenus(this.weixinId);
+        List<WeixinCustomMenu> menus = weixinDao.searchCustomMenus(enterpriseId);
 
         String url = "";
 
@@ -388,7 +362,7 @@ public class WeixinServiceImpl implements WeixinService {
 
                 url = m1.getUrl();
                 if (m1.getBindUrl() == 1) {
-                    url = buildUrlInWeixin(m1.getUrl());
+                    url = buildUrlInWeixin(enterpriseId, m1.getUrl());
                 }
 
                 dto.setUrl(url);
@@ -417,7 +391,7 @@ public class WeixinServiceImpl implements WeixinService {
 
                     url = m2.getUrl();
                     if (m2.getBindUrl() == 1) {
-                        url = buildUrlInWeixin(m2.getUrl());
+                        url = buildUrlInWeixin(enterpriseId, m2.getUrl());
                     }
 
                     dto2.setUrl(url);
@@ -432,34 +406,107 @@ public class WeixinServiceImpl implements WeixinService {
         String jsonBody = JSON.toJSON(wm).toString();
         logger.info(jsonBody);
 
-        Token token = getToken();
+        Token token = getToken(enterpriseId);
         url = "https://api.weixin.qq.com/cgi-bin/menu/create?access_token=" + token.getAccess_token() ;
 
         List<NameValuePair> params = new ArrayList<>();
         params.add(new BasicNameValuePair("body", jsonBody));
 
-        return HttpUtil.postUrl(url, jsonBody);
+        String jsonStr = HttpUtil.postUrl(url, jsonBody);
+
+        return JSON.parseObject(jsonStr, BaseResponse.class);
     }
 
-
-    private synchronized Token getToken() {
-        Token token = weixinDao.retrieveWeixinToken(this.weixinId, Token.WEIXIN_SERVICE_TOKEN, 0);
+    public synchronized Token getToken(final int enterpriseId) {
+        Token token = weixinDao.retrieveWeixinToken(enterpriseId, Token.WEIXIN_SERVICE_TOKEN, 0);
 
         if (token == null || DateUtil.getPastSeconds(token.getCreateTime()) >= token.getExpires_in()) {
-            token = refreshWeixinToken();
+            token = refreshWeixinToken(enterpriseId);
         }
 
         return token;
+
+    }
+
+    @Override
+    public List<WeixinGroup> getGroupList(final int enterpriseId) {
+        return weixinDao.listWeixinGroup(enterpriseId);
+    }
+
+    @Override
+    public WeixinGroup getGroupInfo(final int enterpriseId, int groupId) {
+        return weixinDao.getWeixinGroup(enterpriseId, groupId);
+    }
+
+
+    /**
+     * @Override
+     * @param enterpriseId
+     * @param msg
+     * @param weixinIds
+     * @param deptIds
+     * @param tagIds
+     */
+    public void sendTextMsg(int enterpriseId, String msg, String weixinIds, String deptIds, String tagIds) {
+        if (weixinIds != null && weixinIds.equalsIgnoreCase("NONE")) return;
+
+        WeixinEntConfig cfg = weixinDao.getWeixinEntConfig(enterpriseId, WeixinEntConfig.WORK_WX_DEFAULT);
+        if (cfg == null) {
+            logger.warn("No weixin config.");
+            return;
+        }
+
+        logger.info(cfg.getEnterpriseId() + ", " + enterpriseId + ": " + cfg.getId() + ", " + cfg.getCorpId() + ", " + cfg.getAgentId() + ", " + cfg.getSecret());
+
+        TextMessage txtMsg = new TextMessage();
+        txtMsg.setAgentid(cfg.getAgentId());
+
+        if (weixinIds != null && weixinIds.trim().length() > 0) {
+            txtMsg.setTouser( weixinIds.replaceAll(";", "|"));
+        }
+
+        if (deptIds != null && deptIds.trim().length() > 0) {
+            txtMsg.setToparty(deptIds.replaceAll(";", "|"));
+        }
+
+        if (tagIds != null && tagIds.trim().length() > 0) {
+            txtMsg.setTotag(tagIds.replaceAll(";", "|"));
+        }
+
+
+        txtMsg.setContent(msg  + ". " + DateUtil.formatDate(DateUtil.getCurDateTime(), "MM-dd HH:mm:ss"));
+
+        String jsonStr = com.alibaba.fastjson.JSON.toJSONString(txtMsg);
+
+
+        Token token = getToken(enterpriseId, WeixinEntConfig.WORK_WX_DEFAULT);
+        logger.info("token: " + token.getId() + ", " + token.getWeixinId() + ", " + token.getMsgType() + ", " + token.getAccess_token());
+        logger.info(jsonStr);
+
+        JsonResult jsonResult = doSendTextMsg(jsonStr, token);
+
+        if (jsonResult.getErrcode() == 0) {
+            //发送成功
+            //return jsonResult;
+        } else if (jsonResult.getErrcode() == 40014) {
+            //invalid access_token
+            //try again
+            System.out.println("try again ............................................................................");
+            token = getToken(enterpriseId, WeixinEntConfig.WORK_WX_DEFAULT, true);
+            doSendTextMsg(jsonStr, token);
+        } else {
+            logger.error(jsonResult.getErrcode() + " - " + jsonResult.getErrmsg());
+        }
     }
 
     /**
      * 获取js-sdk ticket, 可刷新
      */
-    private synchronized Token getJsSdkTicket() {
-        Token token = weixinDao.retrieveWeixinToken(this.weixinId, Token.WEIXIN_JS_SDK_TICKET, 0);
+    private synchronized Token getJsSdkTicket(final int enterpriseId) {
+        Token token = weixinDao.retrieveWeixinToken(enterpriseId, Token.WEIXIN_JS_SDK_TICKET, 0);
 
         if (token == null || DateUtil.getPastSeconds(token.getCreateTime()) >= token.getExpires_in()) {
-            token = refreshWeixinJsSdkTicket();
+            token = refreshWeixinJsSdkTicket(enterpriseId);
         }
 
         return token;
@@ -468,8 +515,12 @@ public class WeixinServiceImpl implements WeixinService {
     /**
      * 重新获取weixin的access token
      */
-    private Token refreshWeixinToken() {
+    private Token refreshWeixinToken(final int enterpriseId) {
         final String url = "https://api.weixin.qq.com/cgi-bin/token?";
+
+        WeixinServiceConfig config = getWeixinServiceConfig(enterpriseId);
+        String appId = config.getAppId();
+        String appSecret = config.getAppSecret();
 
         List<NameValuePair> params = new ArrayList<>();
         params.add(new BasicNameValuePair("grant_type", "client_credential"));
@@ -484,7 +535,7 @@ public class WeixinServiceImpl implements WeixinService {
         Token token = new Token();
         token.setAccess_token((String) param.get("access_token"));
         token.setExpires_in((Integer) param.get("expires_in"));
-        token.setWeixinId(this.weixinId);
+        token.setWeixinId(enterpriseId);
 
         weixinDao.createWeixinToken(token);
 
@@ -494,8 +545,8 @@ public class WeixinServiceImpl implements WeixinService {
     /**
      * 获取js sdk需要的ticket
      */
-    private Token refreshWeixinJsSdkTicket() {
-        Token accessToken = getToken();
+    private Token refreshWeixinJsSdkTicket(final int enterpriseId) {
+        Token accessToken = getToken(enterpriseId);
 
         String url = "https://api.weixin.qq.com/cgi-bin/ticket/getticket?";
 
@@ -526,7 +577,7 @@ public class WeixinServiceImpl implements WeixinService {
      * @param count 返回素材的数量，取值在1到20之间
      * @return
      */
-    public WxMaterials getMaterials(final String mediaType, final int offset, final int count) {
+    public WxMaterials getMaterials(final int enterpriseId, final String mediaType, final int offset, final int count) {
         WeixinMediasRequest request = new WeixinMediasRequest();
         request.setType(mediaType);
         request.setOffset(offset);
@@ -535,7 +586,7 @@ public class WeixinServiceImpl implements WeixinService {
         String jsonBody = JSON.toJSON(request).toString();
         logger.debug(jsonBody);
 
-        Token token = getToken();
+        Token token = getToken(enterpriseId);
         String url = "https://api.weixin.qq.com/cgi-bin/material/batchget_material?access_token=" + token.getAccess_token();
 
         List<NameValuePair> params = new ArrayList<>();
@@ -565,10 +616,10 @@ public class WeixinServiceImpl implements WeixinService {
      * @param mediaType 媒体文件类型，分别有图片（image）、语音（voice）、视频（video）和缩略图（thumb）
      * @return 返回原始结果
      */
-    public WxMediaResponse addMaterial(final String filePath, final String mediaType) {
+    public WxMediaResponse addMaterial(final int enterpriseId, final String filePath, final String mediaType) {
         final String API_URL = "https://api.weixin.qq.com/cgi-bin/material/add_material?";
 
-        Token token = getToken();
+        Token token = getToken(enterpriseId);
         String url = API_URL + "access_token=" + token.getAccess_token() + "&type=" + mediaType;
 
         String result = postFile(url, filePath);
@@ -578,7 +629,7 @@ public class WeixinServiceImpl implements WeixinService {
         if (rs.getErrcode() <= 0) {
             //上传成功
             WeixinMaterial wm = new WeixinMaterial();
-            wm.setOwnerId(this.weixinId);
+            wm.setOwnerId(enterpriseId);
             wm.setMaterialType(mediaType);
             wm.setMediaId(rs.getMedia_id());
             wm.setUrl(rs.getUrl());
@@ -596,15 +647,15 @@ public class WeixinServiceImpl implements WeixinService {
      * 新增永久图文素材
      * @return
      */
-    public WxMediaResponse addMaterialNews(WxNewsRequest request) {
+    public WxMediaResponse addMaterialNews(final int enterpriseId, WxNewsRequest request) {
         //检查内容中是否有图片链接，有的话把图片上传到微信，并替换链接
-        replaceImageUrl(request.getArticles());
+        replaceImageUrl(enterpriseId, request.getArticles());
 
 //        http请求方式: POST，https协议
 //        ?access_token=ACCESS_TOKEN
         final String API_URL = "https://api.weixin.qq.com/cgi-bin/material/add_news?";
 
-        Token token = getToken();
+        Token token = getToken(enterpriseId);
         String url = API_URL + "access_token=" + token.getAccess_token();
 
         String jsonBody = JSON.toJSON(request).toString();
@@ -621,7 +672,7 @@ public class WeixinServiceImpl implements WeixinService {
         return rs;
     }
 
-    private void replaceImageUrl(List<WxNews> articles) {
+    private void replaceImageUrl(final int enterpriseId, List<WxNews> articles) {
         for(WxNews article: articles) {
             List<String> images = getImageUrl(article.getContent());
             List<String> urls = getImageSrc(images);
@@ -634,7 +685,7 @@ public class WeixinServiceImpl implements WeixinService {
                 logger.info(filename);
                 if (filename != null) {
                     //2.调用接口上传图片
-                    WxMediaResponse rs = uploadNewsImage(filename);
+                    WxMediaResponse rs = uploadNewsImage(enterpriseId, filename);
                     //3.用返回的新url替换
                     if (rs != null && rs.getUrl() != null) {
                         article.setContent(article.getContent().replace(url, rs.getUrl()));
@@ -661,10 +712,10 @@ public class WeixinServiceImpl implements WeixinService {
      * @param filePath
      * @return
      */
-    public WxMediaResponse uploadNewsImage(String filePath) {
+    public WxMediaResponse uploadNewsImage(final int enterpriseId, String filePath) {
         final String API_URL = "https://api.weixin.qq.com/cgi-bin/media/uploadimg?";
 
-        Token token = getToken();
+        Token token = getToken(enterpriseId);
         String url = API_URL + "access_token=" + token.getAccess_token();
 
         String result = postFile(url, filePath);
@@ -684,14 +735,14 @@ public class WeixinServiceImpl implements WeixinService {
      * @param mediaId
      * @return
      */
-    public String getMaterial(final String mediaType, final String mediaId) {
+    public String getMaterial(final int enterpriseId, final String mediaType, final String mediaId) {
         WxMediaRequest request = new WxMediaRequest();
         request.setMedia_id(mediaId);
 
         String jsonBody = JSON.toJSON(request).toString();
         logger.debug(jsonBody);
 
-        Token token = getToken();
+        Token token = getToken(enterpriseId);
         final String url = WX_API_MATERIAL_GET + "access_token=" + token.getAccess_token();
 
 
@@ -708,14 +759,14 @@ public class WeixinServiceImpl implements WeixinService {
     /**
      * 删除永久素材
      */
-    public WxMediaResponse delMaterial(String mediaId) {
+    public WxMediaResponse delMaterial(final int enterpriseId, String mediaId) {
         WxMediaRequest request = new WxMediaRequest();
         request.setMedia_id(mediaId);
 
         String jsonBody = JSON.toJSON(request).toString();
         logger.debug(jsonBody);
 
-        Token token = getToken();
+        Token token = getToken(enterpriseId);
         final String url = WX_API_MATERIAL_DEL + "access_token=" + token.getAccess_token();
 
 
@@ -724,16 +775,7 @@ public class WeixinServiceImpl implements WeixinService {
 
         String result = HttpUtil.postUrl(url, jsonBody);
 
-//        try {
-//            result = new String(result.getBytes("ISO-8859-1"), "UTF-8");
-//
-            WxMediaResponse rs = JSON.parseObject(result, WxMediaResponse.class);
-//            if (rs != null) {
-//                logger.info(rs.getTotal_count());
-//            }
-//        } catch (Exception ex) {
-//            ex.printStackTrace();
-//        }
+        WxMediaResponse rs = JSON.parseObject(result, WxMediaResponse.class);
 
         return rs;
     }
@@ -744,8 +786,8 @@ public class WeixinServiceImpl implements WeixinService {
      * @param mediaId
      * @return 语音和图片素材返回下载到本地后的地址；视频文件返回URL
      */
-    public String getMedia(String mediaType, String mediaId) {
-        Token token = getToken();
+    public String getMedia(final int enterpriseId, String mediaType, String mediaId) {
+        Token token = getToken(enterpriseId);
         final String url = WX_API_MEDIA_GET + "access_token=" + token.getAccess_token() + "&media_id=" + mediaId;
 
 
@@ -760,11 +802,11 @@ public class WeixinServiceImpl implements WeixinService {
     /**
      * 根据openid获取用户信息
      */
-    public WeixinUserInfo getUserInfo(String openid) {
+    public WeixinUserInfo getUserInfo(final int enterpriseId, String openid) {
         String url = "https://api.weixin.qq.com/cgi-bin/user/info?";
 
         List<NameValuePair> params = new ArrayList<>();
-        params.add(new BasicNameValuePair("access_token", this.getToken().getAccess_token()));
+        params.add(new BasicNameValuePair("access_token", this.getToken(enterpriseId).getAccess_token()));
         params.add(new BasicNameValuePair("openid", openid));
         params.add(new BasicNameValuePair("lang", "zh_CN"));
 
@@ -783,10 +825,10 @@ public class WeixinServiceImpl implements WeixinService {
      3.调用该接口需https协议
      * @return
      */
-    public WxMaterialSummary getMaterialSummary() {
+    public WxMaterialSummary getMaterialSummary(final int enterpriseId) {
         final String url = "https://api.weixin.qq.com/cgi-bin/material/get_materialcount?";
 
-        Token token = getToken();
+        Token token = getToken(enterpriseId);
 
         List<NameValuePair> params = new ArrayList<>();
         params.add(new BasicNameValuePair("access_token", token.getAccess_token()));
@@ -801,13 +843,13 @@ public class WeixinServiceImpl implements WeixinService {
     /**
      * 处理微信公众号里面的事件, 以客服消息发送给用户
      */
-    public void processWeixinEvent(HttpServletResponse response, WxData rq) {
+    public void processWeixinEvent(final int enterpriseId, HttpServletResponse response, WxData rq) {
         if ("subscribe".equalsIgnoreCase(rq.getEvent())) {
             // TODO 通过特定场景二维码关注 eventKey
             List<Object> articles = new ArrayList<>();
             String mediaId = null;
 
-            List<WeixinNews> newsList = weixinDao.searchWeixinNews(this.weixinId);
+            List<WeixinNews> newsList = weixinDao.searchWeixinNews(enterpriseId);
             for(WeixinNews o: newsList) {
                 if (o.getMediaId() != null && o.getMediaId().trim().length() > 0) {
                     mediaId = o.getMediaId();
@@ -821,14 +863,14 @@ public class WeixinServiceImpl implements WeixinService {
                 article.setDescription(o.getDescription());
                 article.setPicurl(o.getPicurl());
                 String url0 = o.getUrl();
-                String url = buildUrlInWeixin(url0);
+                String url = buildUrlInWeixin(enterpriseId, url0);
                 article.setUrl(url);
             }
 
             if (mediaId != null) {
-                this.sendCustomMessage(rq.getFromUserName(), WX_CUSTOM_MSGTYPE_MPNEWS, mediaId, null);
+                this.sendCustomMessage(enterpriseId, rq.getFromUserName(), WX_CUSTOM_MSGTYPE_MPNEWS, mediaId, null);
             } else {
-                this.sendCustomMessage(rq.getFromUserName(), WX_CUSTOM_MSGTYPE_NEWS, null, articles);
+                this.sendCustomMessage(enterpriseId, rq.getFromUserName(), WX_CUSTOM_MSGTYPE_NEWS, null, articles);
             }
         } else if ("unsubscribe".equalsIgnoreCase(rq.getEvent())) {
             logger.warn(rq.getFromUserName() + " unsubscribe.");
@@ -844,10 +886,10 @@ public class WeixinServiceImpl implements WeixinService {
     /**
      * 同步微信关注用户的OpenId到本地
      */
-    public int syncUserList() {
+    public int syncUserList(final int enterpriseId) {
         final String url = "https://api.weixin.qq.com/cgi-bin/user/get?";
 
-        Token token = getToken();
+        Token token = getToken(enterpriseId);
 
         List<NameValuePair> params = new ArrayList<>();
         params.add(new BasicNameValuePair("access_token", token.getAccess_token()));
@@ -866,24 +908,32 @@ public class WeixinServiceImpl implements WeixinService {
             String openId = (String)array.get(i);
             WeixinUser user = new WeixinUser();
             user.setWeixinOpenId(openId);
+            user.setOwnerId(enterpriseId);
 
 
-            WeixinUserInfo userDetail = getUserInfo(openId);
+            WeixinUserInfo userDetail = getUserInfo(enterpriseId, openId);
             if (userDetail != null ) {
                 user.setSubscribe(userDetail.getSubscribe());
                 if (userDetail.getSubscribe() == 1) {
                     BeanUtils.copyProperties(userDetail, user);
                     user.setSubscribe_time(DateUtil.timestampToDate(userDetail.getSubscribe_time() * 1000));
+
+
+                    String temp = user.getNickname();
+                    temp = StringUtil.filterEmoji(temp, "");
+                    user.setNickname(temp);
                 }
             }
 
             // 将用户列表保存到本地
-            if (weixinDao.searchWeixinUser(user.getOwnerId(), user.getWeixinOpenId()) == null) {
+            WeixinUser user0 = weixinDao.searchWeixinUser(user.getOwnerId(), user.getWeixinOpenId());
+            if (user0 == null) {
                 int status = weixinDao.createWeixinUser(user);
-                if (status == -100) {
-                    user.setNickname("");
-                    status = weixinDao.createWeixinUser(user);
-                }
+            } else {
+                user0.setNickname(user.getNickname());
+                user0.setRemark(user.getRemark());
+
+                weixinDao.updateWeixinUser(user0);
             }
         }
 
@@ -895,10 +945,10 @@ public class WeixinServiceImpl implements WeixinService {
     /**
      * 同步消息模板到本地
      */
-    public List<WeixinTemplate> syncTemplates() {
+    public List<WeixinTemplate> syncTemplates(final int enterpriseId) {
         List<WeixinTemplate> results = new ArrayList<>();
 
-        Token token = getToken();
+        Token token = getToken(enterpriseId);
         String url = "https://api.weixin.qq.com/cgi-bin/template/get_all_private_template?";
 
         List<NameValuePair> params = new ArrayList<>();
@@ -916,9 +966,9 @@ public class WeixinServiceImpl implements WeixinService {
             BeanUtils.copyProperties(t0, t1);
 
             //保存t1在本地数据库
-            t1.setOwnerId(this.weixinId);
+            t1.setOwnerId(enterpriseId);
 
-            if (weixinDao.searchWeixinTemplate(this.weixinId, t1.getTemplate_id()) == null) {
+            if (weixinDao.searchWeixinTemplate(enterpriseId, t1.getTemplate_id()) == null) {
                  weixinDao.createWeixinTemplate(t1);
             }
         }
@@ -929,11 +979,11 @@ public class WeixinServiceImpl implements WeixinService {
     /**
      * 发送模板消息
      */
-    public String sendTemplateMsg(WxTemplateSend wxTplRq) {
+    public String sendTemplateMsg(final int enterpriseId, WxTemplateSend wxTplRq) {
         String jsonBody = JSON.toJSONString(wxTplRq);
         logger.debug(jsonBody);
 
-        Token token = getToken();
+        Token token = getToken(enterpriseId);
         String url = "https://api.weixin.qq.com/cgi-bin/message/template/send?access_token=" + token.getAccess_token() ;
 
         List<NameValuePair> params = new ArrayList<>();
@@ -955,7 +1005,7 @@ public class WeixinServiceImpl implements WeixinService {
     /**
      * 处理微信推送过来的 用户消息和开发者需要的事件推送
      */
-    public void processWeixinMessage(HttpServletRequest request, HttpServletResponse response) {
+    public void processWeixinMessage(final int enterpriseId, HttpServletRequest request, HttpServletResponse response) {
 
         final String requestXml = this.readInputXml(request);
         logger.debug("request xml: " + requestXml);
@@ -985,7 +1035,7 @@ public class WeixinServiceImpl implements WeixinService {
         sendResponse(response, "success"); // 向微信服务器发送 success, 稍后用客服消息发送结果给客户
 
         if ("event".equalsIgnoreCase(rq.getMsgType())) {
-            this.processWeixinEvent(response, rq);
+            this.processWeixinEvent(enterpriseId, response, rq);
 
             return;
         }
@@ -1008,13 +1058,11 @@ public class WeixinServiceImpl implements WeixinService {
 
     @Override
     public int createWeixinMaterial(int enterpriseId, String mediaType, String mediaId, String url, String name) {
-        if (enterpriseId != this.weixinId) return -1;
-
-        List<WeixinMaterial> list = searchMaterials(this.weixinId, mediaId);
+        List<WeixinMaterial> list = searchMaterials(enterpriseId, mediaId);
 
         if (list == null || list.size() == 0) {
             WeixinMaterial wm = new WeixinMaterial();
-            wm.setOwnerId(this.weixinId);
+            wm.setOwnerId(enterpriseId);
             wm.setMaterialType(mediaType);
             wm.setMediaId(mediaId);
             wm.setUrl(url);
@@ -1032,26 +1080,23 @@ public class WeixinServiceImpl implements WeixinService {
     }
 
     @Override
-    public WeixinMaterial searchWeixinMaterial(int id) {
-        return weixinDao.searchWeixinMaterial(this.weixinId, id);
+    public WeixinMaterial searchWeixinMaterial(final int enterpriseId, int id) {
+        return weixinDao.searchWeixinMaterial(enterpriseId, id);
     }
 
     @Override
     public Token searchAccessToken(int enterpriseId) {
-        return this.getToken();
+        return this.getToken(enterpriseId);
     }
 
     @Override
-    public WeixinTemplate searchWeixinTemplate(String id) {
-        return weixinDao.searchWeixinTemplate(this.weixinId, id);
+    public WeixinTemplate searchWeixinTemplate(final int enterpriseId, String id) {
+        return weixinDao.searchWeixinTemplate(enterpriseId, id);
     }
 
     @Override
     public List<WeixinTemplate> searchTemplates(int enterpriseId) {
-        if (enterpriseId == this.weixinId)
-            return weixinDao.searchWeixinTemplates(this.weixinId);
-        else
-            return new ArrayList<>();
+            return weixinDao.searchWeixinTemplates(enterpriseId);
     }
 
     /**
@@ -1080,10 +1125,10 @@ public class WeixinServiceImpl implements WeixinService {
     /**
      * 将实际url和授权url绑定
      */
-    private String buildUrlInWeixin(String url0) {
+    public String buildUrlInWeixin(final int enterpriseId, String url0) {
+        String appId = getAppId(enterpriseId);
         try {
-            return "https://open.weixin.qq.com/connect/oauth2/authorize?appid=" +
-                    this.appId +
+            return "https://open.weixin.qq.com/connect/oauth2/authorize?appid=" + appId +
                     "&redirect_uri=" + URLEncoder.encode(url0, "UTF-8") + "&response_type=code&scope=snsapi_base&state=#wechat_redirect";
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
@@ -1095,7 +1140,7 @@ public class WeixinServiceImpl implements WeixinService {
     /**
      * 发送客户消息给用户
      */
-    public String sendCustomMessage(final String touser, final String msgType, final String content, List<Object> articles) {
+    public String sendCustomMessage(final int enterpriseId, final String touser, final String msgType, final String content, List<Object> articles) {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("touser", touser);
         jsonObject.put("msgtype", msgType);
@@ -1124,7 +1169,7 @@ public class WeixinServiceImpl implements WeixinService {
         String jsonBody = jsonObject.toJSONString();
         logger.debug(jsonBody);
 
-        Token token = getToken();
+        Token token = getToken(enterpriseId);
         String url = "https://api.weixin.qq.com/cgi-bin/message/custom/send?access_token=" + token.getAccess_token() ;
 
         List<NameValuePair> params = new ArrayList<>();
@@ -1170,4 +1215,471 @@ public class WeixinServiceImpl implements WeixinService {
 
         return weixinDao.createCustomMenu(o);
     }
+
+    public List<WeixinUser> getUserList(final int enterpriseId) {
+        return weixinDao.listWeixinUser(enterpriseId);
+    }
+
+    public JsonResult apiUpdateGroup(final int enterpriseId, int groupId, String groupName) {
+        JsonResult resultStatus = new JsonResult();
+        //TODO
+        String url = null; //PropertiesUtil.getProperty(AppConfig.API_WEIXIN_UPDATE_GROUP);
+
+        Token token = getToken(enterpriseId);
+        url += "access_token=" + token.getAccess_token();
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("name", groupName);
+        jsonObject.put("id", groupId);
+
+        JSONObject jsonRoot = new JSONObject();
+        jsonRoot.put("group", jsonObject);
+
+        String jsonBody = jsonRoot.toString();
+
+        String jsonStr = HttpUtil.postUrl(url, jsonBody);
+
+
+        //判断返回结果
+        JSONObject jsonResult = JSONObject.parseObject(jsonStr);
+        int errcode = (Integer)jsonResult.get("errcode");
+        if (errcode != 0) {
+            resultStatus.setErrcode(errcode);
+            resultStatus.setErrmsg((String)jsonResult.get("errmsg"));
+            return resultStatus;
+        }
+
+        WeixinGroup weixinGroup = weixinDao.getWeixinGroup(enterpriseId, groupId);
+        if (weixinGroup == null) {
+            resultStatus.setErrcode(-1);
+            resultStatus.setErrmsg("远端修改成功，本地未找到对应的数据");
+            return resultStatus;
+        }
+
+        weixinGroup.setGroupName(groupName);
+        int status = weixinDao.updateWeixinGroup(weixinGroup);
+        if ( status == 1) {
+            resultStatus.setErrcode(0);
+            resultStatus.setErrmsg("修改成功");
+        } else {
+            resultStatus.setErrcode(10000);
+            resultStatus.setErrmsg("保存时失败");
+        }
+
+        return resultStatus;
+    }
+
+    public String apiGetUserList(final int enterpriseId) {
+        //TODO
+        String url = null;//PropertiesUtil.getProperty(AppConfig.API_WEIXIN_LIST_USER);
+        List<NameValuePair> params = new ArrayList<NameValuePair>();
+
+        Token token = getToken(enterpriseId);
+
+        params.add(new BasicNameValuePair("access_token", token.getAccess_token()));
+        params.add(new BasicNameValuePair("next_openid", ""));
+
+
+        String jsonStr = HttpUtil.getUrl(url, params);
+
+
+        //判断返回结果
+        JSONObject jsonResult = JSONObject.parseObject(jsonStr);
+        int total = (Integer) jsonResult.get("total");
+        int count = (Integer) jsonResult.get("count");
+        JSONObject dataObject = (JSONObject)jsonResult.get("data");
+        JSONArray array = dataObject.getJSONArray("openid");
+        int saveCount=0;
+        for(int i = 0; i < array.size(); i++) {
+            String openId = (String)array.get(i);
+            WeixinUser user = new WeixinUser();
+            user.setWeixinOpenId(openId);
+            user.setOwnerId(enterpriseId);
+            int status = weixinDao.createWeixinUser(user);
+            if(status==1) saveCount++;
+        }
+
+        jsonStr = "total: " + total + ", count: " + count + ", saveCount: " + saveCount;
+
+
+        return jsonStr;
+    }
+
+    public String apiGetGroupId(final int enterpriseId, String weixinOpenId) {
+        //TODO
+        String url = null;//PropertiesUtil.getProperty(AppConfig.API_WEIXIN_GET_GROUP_ID);
+
+        Token token = getToken(enterpriseId);
+        //https://api.weixin.qq.com/cgi-bin/groups/getid?access_token=ACCESS_TOKEN
+        url += "access_token=" + token.getAccess_token();
+
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("openid", weixinOpenId);
+        String jsonBody = jsonObject.toString();
+
+        String jsonStr = HttpUtil.postUrl(url, jsonBody);
+
+
+        //判断返回结果
+        JSONObject jsonResult = JSONObject.parseObject(jsonStr);
+        if (jsonResult.get("errcode") != null) {
+            jsonStr = "error: " + jsonResult.get("errmsg");
+            return jsonStr;
+        }
+
+        int groupId = (Integer)jsonResult.get("groupid");
+        WeixinUser user = weixinDao.getWeixinUser(enterpriseId, weixinOpenId);
+        if (user != null) {
+            user.setGroupId(groupId);
+            int status = weixinDao.updateWeixinUser(user);
+            if (status == 1) jsonStr = "OK: 获取成功";
+            else jsonStr = "error: 保存失败";
+        } else {
+            jsonStr = "error: 未找到对应用户";
+        }
+
+        return jsonStr;
+    }
+
+    public String apiGetGroupList(final int enterpriseId) {
+        //TODO
+        String url = null; //PropertiesUtil.getProperty(AppConfig.API_WEIXIN_LIST_GROUP);
+        List<NameValuePair> params = new ArrayList<NameValuePair>();
+
+        Token token = getToken(enterpriseId);
+
+        params.add(new BasicNameValuePair("access_token", token.getAccess_token()));
+
+
+        String jsonStr = HttpUtil.getUrl(url, params);
+
+
+        //判断返回结果
+        JSONObject jsonResult = JSONObject.parseObject(jsonStr);
+        JSONArray array = jsonResult.getJSONArray("groups");
+        int saveCount=0;
+
+        for(int i = 0; i < array.size(); i++) {
+            JSONObject jsonObject = (JSONObject)array.get(i);
+
+            int groupId = (Integer)jsonObject.get("id");
+            String groupName = (String)jsonObject.get("name");
+            int count = (Integer)jsonObject.get("count");
+
+            WeixinGroup group = new WeixinGroup();
+            group.setWeixinId(enterpriseId);
+            group.setGroupId(groupId);
+            group.setGroupName(groupName);
+            group.setCount(count);
+
+            int status = weixinDao.createWeixinGroup(group);
+            if(status==1) saveCount++;
+        }
+
+        jsonStr = "saveCount: " + saveCount;
+
+
+        return jsonStr;
+    }
+
+    public String apiGetUserInfo(final int enterpriseId, int userId) {
+        WeixinUser user = weixinDao.getWeixinUser(enterpriseId, userId);
+
+        int status = executeApiGetUserInfo(enterpriseId, user);
+        String jsonStr = "";
+        if (status == 1)
+            jsonStr = "OK";
+        else
+            jsonStr = "ER";
+
+        return jsonStr;
+    }
+
+    public String apiGetUserInfo(final int enterpriseId) {
+        List<WeixinUser> users = weixinDao.listWeixinUser(enterpriseId);
+
+        String jsonStr="";
+        int saveCount=0;
+
+        for(WeixinUser user: users) {
+            int status =executeApiGetUserInfo(enterpriseId, user);
+            if(status==1) saveCount++;
+        }
+
+        jsonStr = "saveCount: " + saveCount;
+
+        return jsonStr;
+    }
+
+    public String sendWeixinCustomMessage(final int enterpriseId, String toUser, String content) {
+//        http请求方式: POST
+//        https://api.weixin.qq.com/cgi-bin/message/custom/send?access_token=ACCESS_TOKEN
+//        各消息类型所需的JSON数据包如下。
+//                发送文本消息
+//        {
+//            "touser":"OPENID",
+//                "msgtype":"text",
+//                "text":
+//            {
+//                "content":"Hello World"
+//            }
+//        }
+        Token token = getToken(enterpriseId);
+        String url = "https://api.weixin.qq.com/cgi-bin/message/custom/send?access_token=" + token.getAccess_token() ;
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("touser", toUser);
+        jsonObject.put("msgtype", "text");
+
+
+        JSONObject contentObject = new JSONObject();
+        contentObject.put("content", content);
+
+        jsonObject.put("text", contentObject);
+
+        String jsonBody = jsonObject.toString();
+
+        System.out.println(jsonBody);
+        System.out.println(token.getAccess_token());
+
+        String jsonStr = HttpUtil.postUrl(url, jsonBody);
+        return jsonStr;
+    }
+
+    public JsonResult apiCreateGroup(final int enterpriseId, String groupName) {
+        JsonResult resultStatus = new JsonResult();
+        String url = null; //TODO PropertiesUtil.getProperty(AppConfig.API_WEIXIN_CREATE_GROUP);
+
+        Token token = getToken(enterpriseId);
+        url += "access_token=" + token.getAccess_token();
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("name", groupName);
+
+        JSONObject jsonRoot = new JSONObject();
+        jsonRoot.put("group", jsonObject);
+
+        String jsonBody = jsonRoot.toString();
+
+        String jsonStr = HttpUtil.postUrl(url, jsonBody);
+
+
+        //判断返回结果
+        JSONObject jsonResult = JSONObject.parseObject(jsonStr);
+        if (jsonResult.get("errcode") != null) {
+            resultStatus.setErrcode((Integer)jsonResult.get("errcode"));
+            resultStatus.setErrmsg((String)jsonResult.get("errmsg"));
+            return resultStatus;
+        }
+
+        jsonObject = (JSONObject)jsonResult.get("group");
+        int groupId = (Integer)jsonObject.get("id");
+
+        WeixinGroup weixinGroup = new WeixinGroup();
+        weixinGroup.setWeixinId(enterpriseId);
+        weixinGroup.setGroupId(groupId);
+        weixinGroup.setGroupName(groupName);
+
+        int status = weixinDao.createWeixinGroup(weixinGroup);
+        if ( status == 1) {
+            resultStatus.setErrcode(0);
+            resultStatus.setErrmsg("创建成功");
+        } else {
+            resultStatus.setErrcode(10000);
+            resultStatus.setErrmsg("保存时失败");
+        }
+
+        return resultStatus;
+    }
+
+    public int createWeixinAccessTime(final int enterpriseId, String weixinOpenId) {
+        return weixinDao.createWeixinAccessTime(weixinOpenId, enterpriseId);
+    }
+
+    public String createWeixinTemporaryQr(final int enterpriseId) {
+//        临时二维码请求说明
+//
+//        http请求方式: POST
+//        URL: https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token=TOKEN
+//        POST数据格式：json
+//        POST数据例子：{"expire_seconds": 1800, "action_name": "QR_SCENE", "action_info": {"scene": {"scene_id": 123}}}
+//        参数说明
+//        参数 	说明
+//        expire_seconds 	该二维码有效时间，以秒为单位。 最大不超过1800。
+//        action_name 	二维码类型，QR_SCENE为临时,QR_LIMIT_SCENE为永久
+//        action_info 	二维码详细信息
+//        scene_id 	场景值ID，临时二维码时为32位非0整型，永久二维码时最大值为100000（目前参数只支持1--100000）
+//
+//        返回说明
+//
+//        正确的Json返回结果:
+//
+//        {"ticket":"gQG28DoAAAAAAAAAASxodHRwOi8vd2VpeGluLnFxLmNvbS9xL0FuWC1DNmZuVEhvMVp4NDNMRnNRAAIEesLvUQMECAcAAA==","expire_seconds":1800}
+
+        Token token = getToken(enterpriseId);
+        String url = "https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token=" + token.getAccess_token() ;
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("expire_seconds", 1800);
+        jsonObject.put("action_name", "QR_SCENE");
+
+
+        JSONObject sceneObject = new JSONObject();
+        sceneObject.put("scene_id", 10000000 + 898);
+
+        JSONObject actionInfoObject = new JSONObject();
+        actionInfoObject.put("scene", sceneObject);
+
+        jsonObject.put("action_info", actionInfoObject);
+
+        String jsonBody = jsonObject.toString();
+
+        System.out.println(jsonBody);
+        System.out.println(token.getAccess_token());
+
+        String jsonStr = HttpUtil.postUrl(url, jsonBody);
+        return jsonStr;
+        //return jsonBody;
+    }
+
+    public String deleteCustomMenu(final int enterpriseId) {
+        Token token = getToken(enterpriseId);
+        String url = "https://api.weixin.qq.com/cgi-bin/menu/delete?access_token=" + token.getAccess_token();
+
+        String jsonStr = HttpUtil.getUrl(url, null);
+        return jsonStr;
+    }
+
+    /**
+     *
+     * @param enterpriseId 企业id
+     * @param jsonFilename 保存自定义菜单信息的文件名
+     * @return
+     */
+    public BaseResponse createCustomMenu(final int enterpriseId, String jsonFilename) {
+        Token token = getToken(enterpriseId);
+        String url = "https://api.weixin.qq.com/cgi-bin/menu/create?access_token=" + token.getAccess_token() ;
+
+        String jsonStr = FileUtil.file2String(jsonFilename, "utf-8");
+        JSONObject jsonObject= JSONObject.parseObject(jsonStr);
+
+        String jsonBody = jsonObject.toString();
+
+        List<NameValuePair> params = new ArrayList<NameValuePair>();
+        params.add(new BasicNameValuePair("body", jsonBody));
+
+        jsonStr = HttpUtil.postUrl(url, jsonBody);
+        return JSON.parseObject(jsonStr, BaseResponse.class);
+    }
+
+    private JsonResult doSendTextMsg(final String jsonStr, final Token token) {
+        String url = "https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token=" + token.getAccess_token() ;
+
+        String returnStr = HttpUtil.postUrl(url, jsonStr);
+
+        System.out.println("doSendTextMsg: " + returnStr);
+
+        return JSON.parseObject(returnStr, JsonResult.class);
+    }
+
+    public Token getToken(int enterpriseId, int msgType) {
+        return getToken(enterpriseId, msgType,false);
+    }
+
+    private Token getToken(final int enterpriseId, final int msgType, boolean forced) {
+        WeixinEntConfig entConfig = weixinDao.getWeixinEntConfig(enterpriseId, msgType);
+
+        Token token = weixinDao.retrieveWeixinToken(enterpriseId, Token.WORK_WEIXIN_TOKEN, msgType);
+        long pastSeconds = 0;
+        if (token != null) {
+            pastSeconds = DateUtil.getPastSeconds(token.getCreateTime());
+        }
+
+        if (forced || token == null || pastSeconds >= token.getExpires_in()) {
+            //去获取新token
+            //https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=APPID&secret=APPSECRET
+            String url = "https://qyapi.weixin.qq.com/cgi-bin/gettoken?";
+
+            List<NameValuePair> params = new ArrayList<NameValuePair>();
+
+            params.add(new BasicNameValuePair("corpid", entConfig.getCorpId()));
+            params.add(new BasicNameValuePair("corpsecret", entConfig.getSecret()));
+
+            String jsonStr = HttpUtil.getUrl(url, params);
+
+            //判断返回结果
+            JSONObject param = JSONObject.parseObject(jsonStr);
+
+            token = new Token();
+            token.setAccess_token((String) param.get("access_token"));
+            token.setExpires_in((Integer) param.get("expires_in"));
+            token.setWeixinId(enterpriseId);
+            token.setWeixinType(Token.WORK_WEIXIN_TOKEN);
+            token.setMsgType(msgType);
+
+            weixinDao.createWeixinToken(token);
+        }
+
+        return token;
+    }
+
+    private int executeApiGetUserInfo(final int enterpriseId, WeixinUser user) {
+        String url = null; //TODO PropertiesUtil.getProperty(AppConfig.API_WEIXIN_GET_USER);
+        Token token = getToken(enterpriseId);
+
+        String jsonStr="";
+
+
+        List<NameValuePair> params = new ArrayList<NameValuePair>();
+        params.add(new BasicNameValuePair("access_token", token.getAccess_token()));
+        params.add(new BasicNameValuePair("openid", user.getWeixinOpenId()));
+
+        jsonStr = HttpUtil.getUrl(url, params);
+        //判断返回结果
+        JSONObject jsonResult = JSONObject.parseObject(jsonStr);
+
+        if (jsonResult.get("openid") != null) return 0;
+
+        int subscribe = (Integer) jsonResult.get("subscribe");
+        if (subscribe == 0) {
+            user.setSubscribe(0);
+            weixinDao.updateWeixinUser(user);
+            return 0;
+        }
+        user.setSubscribe(subscribe);
+
+        String nickname = (String) jsonResult.get("nickname");
+        user.setNickname(nickname);
+        String language = (String) jsonResult.get("language");
+        user.setLanguage(language);
+        String city = (String) jsonResult.get("city");
+        user.setCity(city);
+        String province = (String) jsonResult.get("province");
+        user.setProvince(province);
+        String country = (String) jsonResult.get("country");
+        user.setCountry(country);
+        String headimgurl = (String) jsonResult.get("headimgurl");
+        user.setHeadimgurl(headimgurl);
+        String unionid = (String) jsonResult.get("unionid");
+        user.setUnionid(unionid);
+
+        int sex = (Integer) jsonResult.get("sex");
+        user.setSex(sex);
+        long time = (Integer) jsonResult.get("subscribe_time");
+        Date subscribeTime = createDate(time*1000);
+        user.setSubscribe_time(subscribeTime);
+
+        int status = weixinDao.updateWeixinUser(user);
+
+        return status;
+    }
+
+    private static Date createDate(long ms) {
+        Calendar c = Calendar.getInstance();
+        c.setTimeInMillis(ms);
+        return c.getTime();
+    }
+
+
 }

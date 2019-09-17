@@ -3,7 +3,7 @@ package cn.buk.api.wechat.dto;
 /**
  * Created by yfdai on 2017/6/7.
  */
-public abstract class BaseResponse {
+public class BaseResponse {
 
     private int errcode;
 

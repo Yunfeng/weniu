@@ -1,15 +1,24 @@
 package cn.buk.api.wechat.service;
 
 import cn.buk.api.wechat.dto.WxMaterials;
+import cn.buk.api.wechat.util.EncoderHandler;
+import cn.buk.api.wechat.work.dto.BaseAttr;
+import cn.buk.api.wechat.work.dto.WwUser;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.qq.weixin.mp.aes.AesException;
+
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.qq.weixin.mp.aes.SHA1.*;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * Created by yfdai on 2017/6/7.
@@ -71,11 +80,91 @@ public class WeixinServiceTest {
         map.put("key", "value");
         JSONObject obj = new JSONObject(map);
 
-        System.out.println(obj.toJSONString());
+//        System.out.println(obj.toJSONString());
     }
-//    @Test
-//    public void testImgUrl() {
-//        weixinService.testImgUrl();
-//    }
+
+    @Test
+    public void testConvertJson2User() {
+        final String jsonStr = "    {\n" +
+                "       \"errcode\": 0,\n" +
+                "       \"errmsg\": \"ok\",\n" +
+                "       \"userid\": \"zhangsan\",\n" +
+                "       \"name\": \"李四\",\n" +
+                "       \"department\": [1, 2],\n" +
+                "       \"order\": [1, 2],\n" +
+                "       \"position\": \"后台工程师\",\n" +
+                "       \"mobile\": \"15913215421\",\n" +
+                "       \"gender\": \"1\",\n" +
+                "       \"email\": \"zhangsan@gzdev.com\",\n" +
+                "       \"isleader\": 1,\n" +
+                "       \"avatar\": \"http://wx.qlogo.cn/mmopen/ajNVdqHZLLA3WJ6DSZUfiakYe37PKnQhBIeOQBO4czqrnZDS79FH5Wm5m4X69TBicnHFlhiafvDwklOpZeXYQQ2icg/0\",\n" +
+                "       \"telephone\": \"020-123456\",\n" +
+                "       \"english_name\": \"jackzhang\",\n" +
+                "       \"extattr\": {\"attrs\":[{\"name\":\"爱好\",\"value\":\"旅游\"},{\"name\":\"卡号\",\"value\":\"1234567234\"}]},\n" +
+                "       \"status\": 1\n" +
+                "    }";
+
+//        jsonStr = "{\"enable\":0,\"errcode\":0,\"extattr\":{\"attrs\":[{\"name\":\"eterm-id\",\"value\":\"eterm-username\"}]},\"isleader\":0,\"mobile\":\"15618206323\",\"userid\":\"123\"}";
+
+//        System.out.println(jsonStr);
+
+        WwUser user = JSON.parseObject(jsonStr, WwUser.class);
+
+        assertEquals("zhangsan", user.getUserid());
+        assertEquals("15913215421", user.getMobile());
+
+        assertNotNull(user.getExtattr());
+
+        assertEquals("爱好", user.getExtattr().getAttrs().get(0).getName());
+        assertEquals("旅游", user.getExtattr().getAttrs().get(0).getValue());
+    }
+
+    @Test
+    public void testConvertUser2Json() {
+        WwUser user = new WwUser();
+        user.setUserid("123");
+        user.setMobile("15618206323");
+
+        BaseAttr attr1 = new BaseAttr();
+        attr1.setName("eterm-id");
+        attr1.setValue("eterm-username");
+        user.getExtattr().getAttrs().add(attr1);
+
+//        System.out.println(JSON.toJSONString(user));
+    }
+
+    @Test
+    public void testSha1Method() {
+        String token = "fa";
+        String timeStamp = "bfff";
+        String nonce = "caaa";
+        String echoStr = "dddd";
+
+        try {
+            String signature1 = getSHA1(token, timeStamp, nonce, echoStr);
+            System.out.println(signature1);
+
+            ArrayList<String> al = new ArrayList<>();
+            al.add(token);
+            al.add(timeStamp);
+            al.add(nonce);
+            al.add(echoStr);
+            Collections.sort(al);
+
+            String allString = "";
+            for (String temp : al) {
+                allString += temp;
+            }
+
+            System.out.println(allString);
+
+            String signature2 = EncoderHandler.encode("SHA1", allString);
+//            System.out.println(signature2);
+        } catch (AesException e) {
+            e.printStackTrace();
+        }
+    }
+
+
 
 }
