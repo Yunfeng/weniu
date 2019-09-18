@@ -20,6 +20,9 @@ import java.util.Map;
 
 import static cn.buk.api.wechat.entity.WeixinEntConfig.WORK_WX_DEFAULT;
 
+/**
+ * @author yfdai
+ */
 public class WorkWeixinServiceImpl extends BaseService implements WorkWeixinService {
 
     private static Logger logger = Logger.getLogger(WorkWeixinServiceImpl.class);
@@ -387,12 +390,39 @@ public class WorkWeixinServiceImpl extends BaseService implements WorkWeixinServ
     }
 
     @Override
-    public String getExternalContact(final int enterpriseId, final String code) {
-        Token token = getToken(enterpriseId, WeixinEntConfig.WORK_WX_EXTERNAL_CONTACTS, false);
+    public ExternalContactDetailResponse getExternalContactDetail(final String accessToken, final String externalUserId) {
+        final String url = "https://qyapi.weixin.qq.com/cgi-bin/externalcontact/get?access_token=" + accessToken + "&external_userid=" + externalUserId;
 
-        final String url = "https://qyapi.weixin.qq.com/cgi-bin/crm/get_external_contact?access_token=" + token.getAccess_token() + "&code=" + code;
+        String jsonStr = HttpUtil.getUrl(url, null);
+        if (this.outputJson) {
+            System.out.println(jsonStr);
+        }
 
-        return HttpUtil.getUrl(url, null);
+        return JSON.parseObject(jsonStr, ExternalContactDetailResponse.class);
+    }
+
+  @Override
+  public ExternalContactFollowUsersResponse getExternalContactFollowUsers(String accessToken) {
+    final String url = "https://qyapi.weixin.qq.com/cgi-bin/externalcontact/get_follow_user_list?access_token=" + accessToken;
+
+    String jsonStr = HttpUtil.getUrl(url, null);
+    if (this.outputJson) {
+      System.out.println(jsonStr);
+    }
+
+    return JSON.parseObject(jsonStr, ExternalContactFollowUsersResponse.class);
+  }
+
+    @Override
+    public ExternalContactListResponse getExternalContactList(String accessToken, String userId) {
+        final String url = "https://qyapi.weixin.qq.com/cgi-bin/externalcontact/list?access_token=" + accessToken + "&userid=" + userId;
+
+        String jsonStr = HttpUtil.getUrl(url, null);
+        if (this.outputJson) {
+            System.out.println(jsonStr);
+        }
+
+        return JSON.parseObject(jsonStr, ExternalContactListResponse.class);
     }
 
     @Override
@@ -407,4 +437,8 @@ public class WorkWeixinServiceImpl extends BaseService implements WorkWeixinServ
         return weixinDao.createWeixinToken(token);
     }
 
+    @Override
+    public Token getWorkWeixinToken(int enterpriseId, boolean forced) {
+        return this.getToken(enterpriseId, forced);
+    }
 }

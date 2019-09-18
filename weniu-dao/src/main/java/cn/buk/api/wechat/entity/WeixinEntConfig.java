@@ -4,7 +4,9 @@ import javax.persistence.*;
 import java.util.Date;
 
 /**
- * Created by yfdai on 16/7/9.
+ *
+ * @author yfdai
+ * @date 16/7/9
  *
  * 企业微信应用的API参数
  */

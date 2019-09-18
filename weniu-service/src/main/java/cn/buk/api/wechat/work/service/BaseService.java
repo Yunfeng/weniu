@@ -16,6 +16,9 @@ import java.util.List;
 
 import static cn.buk.api.wechat.entity.WeixinEntConfig.WORK_WX_DEFAULT;
 
+/**
+ * @author yfdai
+ */
 public class BaseService {
 
     private static Logger logger = Logger.getLogger(BaseService.class);
@@ -51,6 +54,8 @@ public class BaseService {
             params.add(new BasicNameValuePair("corpsecret", entConfig.getSecret()));
 
             String jsonStr = HttpUtil.getUrl(url, params);
+
+            System.out.println(jsonStr);
 
             //判断返回结果
             JSONObject param = JSONObject.parseObject(jsonStr);

@@ -1,5 +1,8 @@
 package cn.buk.api.wechat.work.dto;
 
+/**
+ * @author yfdai
+ */
 public class BaseResponse {
 
     private int errcode;

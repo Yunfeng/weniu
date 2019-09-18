@@ -6,6 +6,9 @@ import cn.buk.common.sc.CommonSearchCriteria;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * @author yfdai
+ */
 public interface WeixinDao {
 
     /**
