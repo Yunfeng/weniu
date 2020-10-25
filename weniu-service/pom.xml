@@ -16,31 +16,10 @@
   </properties>
 
   <dependencies>
-
-
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>weniu-dao</artifactId>
       <version>${project.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-context</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.logging.log4j</groupId>
-      <artifactId>log4j-core</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-log4j12</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
     </dependency>
 
     <dependency>
@@ -52,10 +31,6 @@
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
     </dependency>
-    <!--<dependency>-->
-      <!--<groupId>org.apache.httpcomponents</groupId>-->
-      <!--<artifactId>httpcore</artifactId>-->
-    <!--</dependency>-->
 
     <dependency>
       <groupId>org.junit.vintage</groupId>
@@ -90,17 +65,4 @@
 
   </dependencies>
 
-  <build>
-    <plugins>
-<!--      <plugin>-->
-<!--        <groupId>org.apache.maven.plugins</groupId>-->
-<!--        <artifactId>maven-compiler-plugin</artifactId>-->
-<!--        <version>3.7.0</version> &lt;!&ndash; this is critical &ndash;&gt;-->
-<!--        <configuration>-->
-<!--          <source>1.8</source>-->
-<!--          <target>1.8</target>-->
-<!--        </configuration>-->
-<!--      </plugin>-->
-    </plugins>
-  </build>
 </project>
