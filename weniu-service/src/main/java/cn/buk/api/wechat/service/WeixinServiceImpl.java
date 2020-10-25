@@ -1124,12 +1124,19 @@ public class WeixinServiceImpl implements WeixinService {
 
     /**
      * 将实际url和授权url绑定
+     * state: wxs_5
+     * wxs 标识weixin_service_no，微信服务号，后面的数字5标识该企业的enterpriseId
      */
     public String buildUrlInWeixin(final int enterpriseId, String url0) {
         String appId = getAppId(enterpriseId);
         try {
-            return "https://open.weixin.qq.com/connect/oauth2/authorize?appid=" + appId +
-                    "&redirect_uri=" + URLEncoder.encode(url0, "UTF-8") + "&response_type=code&scope=snsapi_base&state=#wechat_redirect";
+            return "https://open.weixin.qq.com/connect/oauth2/authorize?appid="
+                    + appId
+                    + "&redirect_uri=" + URLEncoder.encode(url0, "UTF-8")
+                    + "&response_type=code"
+                    + "&scope=snsapi_base" +
+                    "&state=" + "wxs_" + enterpriseId +
+                    "#wechat_redirect";
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
 
