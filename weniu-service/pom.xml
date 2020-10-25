@@ -4,7 +4,7 @@
   <parent>
     <groupId>cn.buk.api.wechat</groupId>
     <artifactId>weniu</artifactId>
-    <version>2.0.4-SNAPSHOT</version>
+    <version>2.0.6-SNAPSHOT</version>
   </parent>
 
   <name>weniu-service</name>
@@ -92,15 +92,15 @@
 
   <build>
     <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.7.0</version> <!-- this is critical -->
-        <configuration>
-          <source>1.8</source>
-          <target>1.8</target>
-        </configuration>
-      </plugin>
+<!--      <plugin>-->
+<!--        <groupId>org.apache.maven.plugins</groupId>-->
+<!--        <artifactId>maven-compiler-plugin</artifactId>-->
+<!--        <version>3.7.0</version> &lt;!&ndash; this is critical &ndash;&gt;-->
+<!--        <configuration>-->
+<!--          <source>1.8</source>-->
+<!--          <target>1.8</target>-->
+<!--        </configuration>-->
+<!--      </plugin>-->
     </plugins>
   </build>
 </project>

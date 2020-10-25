@@ -35,6 +35,10 @@ public class WwProviderTicket {
     @Column(name = "time_stamp")
     private Date timeStamp;
 
+    @Column(name = "create_time", insertable = false, updatable = false)
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date createTime;
+
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "last_update", insertable = false)
     private Date lastUpdate;
@@ -85,5 +89,13 @@ public class WwProviderTicket {
 
     public void setLastUpdate(Date lastUpdate) {
         this.lastUpdate = lastUpdate;
+    }
+
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
     }
 }

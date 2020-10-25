@@ -34,8 +34,8 @@ public class WeixinMaterial {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(name="weixin_id")
-    private int ownerId;
+    @Column(name="enterprise_id")
+    private int enterpriseId;
 
     /**
      * 素材类型
@@ -73,13 +73,7 @@ public class WeixinMaterial {
         this.id = id;
     }
 
-    public int getOwnerId() {
-        return ownerId;
-    }
 
-    public void setOwnerId(int ownerId) {
-        this.ownerId = ownerId;
-    }
 
     public Date getCreateTime() {
         return createTime;
@@ -127,5 +121,13 @@ public class WeixinMaterial {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public int getEnterpriseId() {
+        return enterpriseId;
+    }
+
+    public void setEnterpriseId(int enterpriseId) {
+        this.enterpriseId = enterpriseId;
     }
 }

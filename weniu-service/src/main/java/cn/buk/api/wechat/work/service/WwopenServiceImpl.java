@@ -76,7 +76,7 @@ public class WwopenServiceImpl extends BaseService implements WwopenService {
             token = new Token();
             token.setAccess_token((String) param.get("provider_access_token"));
             token.setExpires_in((Integer) param.get("expires_in"));
-            token.setWeixinId(enterpriseId);
+            token.setEnterpriseId(enterpriseId);
             token.setWeixinType(weixinType);
             token.setMsgType(msgType);
 

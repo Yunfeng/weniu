@@ -14,7 +14,8 @@ public class WeixinOauthToken {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    private int weixinId;
+    @Column(name = "enterprise_id")
+    private int enterpriseId;
 
     @Column(length=512)
     private String access_token;
@@ -64,13 +65,7 @@ public class WeixinOauthToken {
         this.id = id;
     }
 
-    public int getWeixinId() {
-        return weixinId;
-    }
 
-    public void setWeixinId(int weixinId) {
-        this.weixinId = weixinId;
-    }
 
     public String getRefresh_token() {
         return refresh_token;
@@ -94,5 +89,13 @@ public class WeixinOauthToken {
 
     public void setScope(String scope) {
         this.scope = scope;
+    }
+
+    public int getEnterpriseId() {
+        return enterpriseId;
+    }
+
+    public void setEnterpriseId(int enterpriseId) {
+        this.enterpriseId = enterpriseId;
     }
 }

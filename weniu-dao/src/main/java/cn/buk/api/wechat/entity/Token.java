@@ -21,7 +21,8 @@ public class Token {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    private int weixinId;
+    @Column(name = "enterprise_id")
+    private int enterpriseId;
 
     /**
      * 0 - 服务号
@@ -44,8 +45,8 @@ public class Token {
 
     private int expires_in;
 
-    @Column(insertable = false, updatable = false)
     @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "create_time", insertable = false, updatable = false)
     private Date createTime;
 
     public String getAccess_token() {
@@ -80,14 +81,6 @@ public class Token {
         this.id = id;
     }
 
-    public int getWeixinId() {
-        return weixinId;
-    }
-
-    public void setWeixinId(int weixinId) {
-        this.weixinId = weixinId;
-    }
-
     public int getWeixinType() {
         return weixinType;
     }
@@ -102,5 +95,13 @@ public class Token {
 
     public void setMsgType(Integer msgType) {
         this.msgType = msgType;
+    }
+
+    public int getEnterpriseId() {
+        return enterpriseId;
+    }
+
+    public void setEnterpriseId(int enterpriseId) {
+        this.enterpriseId = enterpriseId;
     }
 }

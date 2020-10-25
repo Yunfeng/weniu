@@ -279,7 +279,7 @@ public class WeixinServiceImpl implements WeixinService {
             token.setScope((String) param.get("scope"));
             token.setExpires_in((Integer) param.get("expires_in"));
 
-            token.setWeixinId(enterpriseId);
+            token.setEnterpriseId(enterpriseId);
             weixinDao.createWeixinOauthToken(token);
 
             return token;
@@ -480,7 +480,7 @@ public class WeixinServiceImpl implements WeixinService {
 
 
         Token token = getToken(enterpriseId, WeixinEntConfig.WORK_WX_DEFAULT);
-        logger.info("token: " + token.getId() + ", " + token.getWeixinId() + ", " + token.getMsgType() + ", " + token.getAccess_token());
+        logger.info("token: " + token.getId() + ", " + token.getEnterpriseId() + ", " + token.getMsgType() + ", " + token.getAccess_token());
         logger.info(jsonStr);
 
         JsonResult jsonResult = doSendTextMsg(jsonStr, token);
@@ -535,7 +535,7 @@ public class WeixinServiceImpl implements WeixinService {
         Token token = new Token();
         token.setAccess_token((String) param.get("access_token"));
         token.setExpires_in((Integer) param.get("expires_in"));
-        token.setWeixinId(enterpriseId);
+        token.setEnterpriseId(enterpriseId);
 
         weixinDao.createWeixinToken(token);
 
@@ -629,7 +629,7 @@ public class WeixinServiceImpl implements WeixinService {
         if (rs.getErrcode() <= 0) {
             //上传成功
             WeixinMaterial wm = new WeixinMaterial();
-            wm.setOwnerId(enterpriseId);
+            wm.setEnterpriseId(enterpriseId);
             wm.setMaterialType(mediaType);
             wm.setMediaId(rs.getMedia_id());
             wm.setUrl(rs.getUrl());
@@ -966,7 +966,7 @@ public class WeixinServiceImpl implements WeixinService {
             BeanUtils.copyProperties(t0, t1);
 
             //保存t1在本地数据库
-            t1.setOwnerId(enterpriseId);
+            t1.setEnterpriseId(enterpriseId);
 
             if (weixinDao.searchWeixinTemplate(enterpriseId, t1.getTemplate_id()) == null) {
                  weixinDao.createWeixinTemplate(t1);
@@ -1062,7 +1062,7 @@ public class WeixinServiceImpl implements WeixinService {
 
         if (list == null || list.size() == 0) {
             WeixinMaterial wm = new WeixinMaterial();
-            wm.setOwnerId(enterpriseId);
+            wm.setEnterpriseId(enterpriseId);
             wm.setMaterialType(mediaType);
             wm.setMediaId(mediaId);
             wm.setUrl(url);
@@ -1614,7 +1614,7 @@ public class WeixinServiceImpl implements WeixinService {
             token = new Token();
             token.setAccess_token((String) param.get("access_token"));
             token.setExpires_in((Integer) param.get("expires_in"));
-            token.setWeixinId(enterpriseId);
+            token.setEnterpriseId(enterpriseId);
             token.setWeixinType(Token.WORK_WEIXIN_TOKEN);
             token.setMsgType(msgType);
 

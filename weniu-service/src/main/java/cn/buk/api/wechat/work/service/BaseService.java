@@ -63,7 +63,7 @@ public class BaseService {
             token = new Token();
             token.setAccess_token((String) param.get("access_token"));
             token.setExpires_in((Integer) param.get("expires_in"));
-            token.setWeixinId(enterpriseId);
+            token.setEnterpriseId(enterpriseId);
             token.setWeixinType(Token.WORK_WEIXIN_TOKEN);
             token.setMsgType(msgType);
 

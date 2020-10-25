@@ -16,15 +16,18 @@ public class WeixinAccessTime {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
+    @Column(name = "enterprise_id")
     private int weixinId;
 
     @Column(length=64, name="weixin_open_id")
     private String weixinOpenId;
 
+    @Temporal(TemporalType.TIMESTAMP)
     @Column(name="access_time")
     private Date accessTime;
 
-    @Column(insertable = false, updatable = false)
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "create_time", insertable = false, updatable = false)
     private Date createTime;
 
     public String getWeixinOpenId() {

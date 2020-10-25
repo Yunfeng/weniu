@@ -46,6 +46,7 @@ public class WeixinUser {
     private String city;
     private String province;
     private String country;
+    @Column(name = "head_img_url")
     private String headimgurl;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")

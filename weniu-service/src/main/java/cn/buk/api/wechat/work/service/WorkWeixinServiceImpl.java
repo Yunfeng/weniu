@@ -227,7 +227,7 @@ public class WorkWeixinServiceImpl extends BaseService implements WorkWeixinServ
         ticket.setAccess_token((String) param.get("ticket"));
         ticket.setExpires_in((Integer) param.get("expires_in"));
         ticket.setWeixinType(Token.WORK_WEIXIN_JSAPI_TICKET);
-        ticket.setWeixinId(enterpriseId);
+        ticket.setEnterpriseId(enterpriseId);
 
         weixinDao.createWeixinToken(ticket);
 
@@ -430,7 +430,7 @@ public class WorkWeixinServiceImpl extends BaseService implements WorkWeixinServ
         Token token = new Token();
         token.setAccess_token(accessToken);
         token.setExpires_in(expiresIn);
-        token.setWeixinId(enterpriseId);
+        token.setEnterpriseId(enterpriseId);
         token.setWeixinType(Token.WORK_WEIXIN_TOKEN);
         token.setMsgType(WORK_WX_DEFAULT);
 

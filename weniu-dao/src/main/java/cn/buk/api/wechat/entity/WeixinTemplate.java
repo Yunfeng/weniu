@@ -18,8 +18,8 @@ public class WeixinTemplate {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(name="weixin_id")
-    private int ownerId;
+    @Column(name="enterprise_id")
+    private int enterpriseId;
 
     private String template_id;
 
@@ -55,13 +55,6 @@ public class WeixinTemplate {
         this.id = id;
     }
 
-    public int getOwnerId() {
-        return ownerId;
-    }
-
-    public void setOwnerId(int ownerId) {
-        this.ownerId = ownerId;
-    }
 
     public String getTemplate_id() {
         return template_id;
@@ -117,5 +110,13 @@ public class WeixinTemplate {
 
     public void setRemark(String remark) {
         this.remark = remark;
+    }
+
+    public int getEnterpriseId() {
+        return enterpriseId;
+    }
+
+    public void setEnterpriseId(int enterpriseId) {
+        this.enterpriseId = enterpriseId;
     }
 }

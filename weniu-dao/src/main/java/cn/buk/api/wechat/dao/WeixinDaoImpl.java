@@ -302,7 +302,7 @@ public class WeixinDaoImpl extends AbstractDao implements WeixinDao {
             Root<WeixinMaterial> root = cq.from(WeixinMaterial.class);
 
             Predicate where = cb.conjunction();
-            where = cb.and(where, cb.equal(root.get(WeixinMaterial_.ownerId), enterpriseId));
+            where = cb.and(where, cb.equal(root.get(WeixinMaterial_.enterpriseId), enterpriseId));
 
             cq.where(where);
             List<javax.persistence.criteria.Order> orderByes = new ArrayList<>();
@@ -315,7 +315,7 @@ public class WeixinDaoImpl extends AbstractDao implements WeixinDao {
             Root<WeixinMaterial> countRoot = countQuery.from(WeixinMaterial.class);
 
             Predicate where0 = cb.conjunction();
-            where0 = cb.and(where0, cb.equal(countRoot.get(WeixinMaterial_.ownerId), enterpriseId));
+            where0 = cb.and(where0, cb.equal(countRoot.get(WeixinMaterial_.enterpriseId), enterpriseId));
 
 
             countQuery.select(cb.count(countRoot)).where(where0);
@@ -361,7 +361,7 @@ public class WeixinDaoImpl extends AbstractDao implements WeixinDao {
         EntityManager em = createEntityManager();
         try {
             WeixinMaterial o = em.find(WeixinMaterial.class, id);
-            if (o != null && o.getOwnerId() != weixinId)
+            if (o != null && o.getEnterpriseId() != weixinId)
                 return null;
             else
                 return o;
