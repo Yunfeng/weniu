@@ -79,7 +79,7 @@ public class WeixinUser {
     private Integer groupId;
 
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(insertable = false, updatable = false)
+    @Column(name = "create_time", insertable = false, updatable = false)
     private Date createTime;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")

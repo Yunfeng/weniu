@@ -29,8 +29,8 @@ public class WeixinOauthToken {
 
     private String scope;
 
-    @Column(insertable = false, updatable = false)
     @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "create_time", insertable = false, updatable = false)
     private Date createTime;
 
     public String getAccess_token() {

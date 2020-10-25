@@ -47,7 +47,7 @@ public class WeixinNews {
     private int displayOrder;
 
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "create_time")
+    @Column(name = "create_time", insertable = false, updatable = false)
     private Date createTime;
 
     public int getId() {

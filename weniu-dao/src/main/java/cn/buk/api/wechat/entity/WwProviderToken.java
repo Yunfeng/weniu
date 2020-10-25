@@ -33,12 +33,12 @@ public class WwProviderToken {
     @Column(name = "expires_in")
     private int expiresIn;
 
-    @Column(name = "create_time", insertable = false, updatable = false)
     @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "create_time", insertable = false, updatable = false)
     private Date createTime;
 
-    @Column(name = "last_update")
     @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "last_update", insertable = false)
     private Date lastUpdate;
 
 

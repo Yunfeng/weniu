@@ -28,7 +28,7 @@ public class HttpUtil extends BaseHttpClient {
         String uri = url;
         if (params != null) uri += URLEncodedUtils.format(params, "UTF-8");
 
-        logger.debug(uri.toString());
+        logger.info(uri.toString());
 
         CloseableHttpClient httpClient = createHttpClient();
         RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(SO_TIMEOUT).setConnectTimeout(CONNECTION_TIMEOUT).build();
@@ -43,7 +43,7 @@ public class HttpUtil extends BaseHttpClient {
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
                 rs = EntityUtils.toString(response.getEntity(), "UTF-8");
 
-                logger.debug("response: " + rs);
+                logger.info("response: " + rs);
             }
 
             response.close();

@@ -264,7 +264,7 @@ public class WeixinServiceImpl implements WeixinService {
         params.add(new BasicNameValuePair("code", weixinOauthCode));
         params.add(new BasicNameValuePair("grant_type", "authorization_code"));
 
-        String jsonStr = HttpUtil.getUrl(url, params);
+        final String jsonStr = HttpUtil.getUrl(url, params);
 
         //判断返回结果
         JSONObject param = JSON.parseObject(jsonStr);
@@ -282,6 +282,7 @@ public class WeixinServiceImpl implements WeixinService {
 
             return token;
         } else {
+            logger.info(jsonStr);
             return null;
         }
     }

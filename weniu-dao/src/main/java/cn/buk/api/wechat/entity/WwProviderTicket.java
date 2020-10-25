@@ -35,8 +35,8 @@ public class WwProviderTicket {
     @Column(name = "time_stamp")
     private Date timeStamp;
 
-    @Column(name = "create_time", insertable = false, updatable = false)
     @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "create_time", insertable = false, updatable = false)
     private Date createTime;
 
     @Temporal(TemporalType.TIMESTAMP)

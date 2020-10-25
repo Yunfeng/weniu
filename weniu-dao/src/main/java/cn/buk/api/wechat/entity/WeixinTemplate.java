@@ -40,12 +40,12 @@ public class WeixinTemplate {
     private String remark;
 
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(insertable = false, updatable = false)
+    @Column(name = "create_time", insertable = false, updatable = false)
     private Date createTime;
 
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(insertable = false)
-    private Date lastupdate;
+    @Column(name = "last_update", insertable = false)
+    private Date lastUpdate;
 
     public int getId() {
         return id;
@@ -88,12 +88,12 @@ public class WeixinTemplate {
         this.createTime = createTime;
     }
 
-    public Date getLastupdate() {
-        return lastupdate;
+    public Date getLastUpdate() {
+        return lastUpdate;
     }
 
-    public void setLastupdate(Date lastupdate) {
-        this.lastupdate = lastupdate;
+    public void setLastUpdate(Date lastupdate) {
+        this.lastUpdate = lastupdate;
     }
 
     public String getBusinessId() {
