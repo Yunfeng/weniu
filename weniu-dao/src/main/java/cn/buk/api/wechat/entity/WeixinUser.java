@@ -9,15 +9,15 @@ import java.util.Date;
  * 关注微信公众号的用户
  */
 @Entity
-@Table(name="weixin_user", uniqueConstraints = @UniqueConstraint(name = "uk_wx_user", columnNames = {"weixin_id", "weixin_open_id"}))
+@Table(name="weixin_user", uniqueConstraints = @UniqueConstraint(name = "uk_wx_user", columnNames = {"enterprise_id", "weixin_open_id"}))
 public class WeixinUser {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(name="weixin_id")
-    private int ownerId;
+    @Column(name="enterprise_id")
+    private int enterpriseId;
 
     @Column(length=64, name="weixin_open_id")
     private String weixinOpenId;
@@ -208,12 +208,12 @@ public class WeixinUser {
         this.groupId = groupId;
     }
 
-    public int getOwnerId() {
-        return ownerId;
+    public int getEnterpriseId() {
+        return enterpriseId;
     }
 
-    public void setOwnerId(int ownerId) {
-        this.ownerId = ownerId;
+    public void setEnterpriseId(int ownerId) {
+        this.enterpriseId = ownerId;
     }
 
     public String getRemark() {

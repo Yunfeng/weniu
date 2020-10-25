@@ -7,7 +7,7 @@ import java.util.Date;
  * 微信永久素材
  */
 @Entity
-@Table(name="weixin_material", uniqueConstraints = @UniqueConstraint(name = "uk_wx_material", columnNames = {"weixin_id", "media_id"}))
+@Table(name="weixin_material", uniqueConstraints = @UniqueConstraint(name = "uk_wx_material", columnNames = {"enterprise_id", "media_id"}))
 public class WeixinMaterial {
 
 //    图片（image）: 2M，支持bmp/png/jpeg/jpg/gif格式
@@ -58,12 +58,12 @@ public class WeixinMaterial {
     private String name;
 
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(insertable = false, updatable = false)
+    @Column(name = "create_time", insertable = false, updatable = false)
     private Date createTime;
 
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(insertable = false)
-    private Date lastupdate;
+    @Column(name = "last_update", insertable = false)
+    private Date lastUpdate;
 
     public int getId() {
         return id;
@@ -83,13 +83,7 @@ public class WeixinMaterial {
         this.createTime = createTime;
     }
 
-    public Date getLastupdate() {
-        return lastupdate;
-    }
 
-    public void setLastupdate(Date lastupdate) {
-        this.lastupdate = lastupdate;
-    }
 
     public String getMediaId() {
         return mediaId;
@@ -129,5 +123,13 @@ public class WeixinMaterial {
 
     public void setEnterpriseId(int enterpriseId) {
         this.enterpriseId = enterpriseId;
+    }
+
+    public Date getLastUpdate() {
+        return lastUpdate;
+    }
+
+    public void setLastUpdate(Date lastUpdate) {
+        this.lastUpdate = lastUpdate;
     }
 }

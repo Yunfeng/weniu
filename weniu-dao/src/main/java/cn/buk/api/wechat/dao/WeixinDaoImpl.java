@@ -111,7 +111,7 @@ public class WeixinDaoImpl extends AbstractDao implements WeixinDao {
             Root<WeixinUser> root = cq.from(WeixinUser.class);
 
             Predicate where = cb.conjunction();
-            where = cb.and(where, cb.equal(root.get(WeixinUser_.ownerId), enterpriseId));
+            where = cb.and(where, cb.equal(root.get(WeixinUser_.enterpriseId), enterpriseId));
 
             cq.where(where);
             List<javax.persistence.criteria.Order> orderByes = new ArrayList<>();
@@ -124,7 +124,7 @@ public class WeixinDaoImpl extends AbstractDao implements WeixinDao {
             Root<WeixinUser> countRoot = countQuery.from(WeixinUser.class);
 
             Predicate where0 = cb.conjunction();
-            where0 = cb.and(where0, cb.equal(countRoot.get(WeixinUser_.ownerId), enterpriseId));
+            where0 = cb.and(where0, cb.equal(countRoot.get(WeixinUser_.enterpriseId), enterpriseId));
 
 
             countQuery.select(cb.count(countRoot)).where(where0);
@@ -162,7 +162,7 @@ public class WeixinDaoImpl extends AbstractDao implements WeixinDao {
         EntityManager em = createEntityManager();
         try {
             List<WeixinUser> users =  em.createQuery("select o from WeixinUser o " +
-                    "where o.ownerId = :enterpriseId and o.weixinOpenId = :openId", WeixinUser.class)
+                    "where o.enterpriseId = :enterpriseId and o.weixinOpenId = :openId", WeixinUser.class)
                     .setParameter("enterpriseId",enterpriseId)
                     .setParameter("openId", openId)
                     .getResultList();
@@ -434,7 +434,7 @@ public class WeixinDaoImpl extends AbstractDao implements WeixinDao {
         EntityManager em = createEntityManager();
         try {
             List<WeixinGroup> groups = em.createQuery("select o from WeixinGroup o " +
-                    " where o.weixinId = :weixinId ")
+                    " where o.enterpriseId = :weixinId ")
                     .setParameter("weixinId", weixinId)
                     .getResultList();
 
@@ -449,7 +449,7 @@ public class WeixinDaoImpl extends AbstractDao implements WeixinDao {
         EntityManager em = createEntityManager();
         try {
             List<WeixinGroup> groups = em.createQuery("select o from WeixinGroup o " +
-                    " where o.weixinId = :weixinId " +
+                    " where o.enterpriseId = :weixinId " +
                     " and o.groupId = :groupId")
                     .setParameter("weixinId", weixinId)
                     .setParameter("groupId", groupId)
@@ -466,7 +466,7 @@ public class WeixinDaoImpl extends AbstractDao implements WeixinDao {
         EntityManager em = createEntityManager();
         try {
             List<WeixinUser> users = em.createQuery("select o from WeixinUser o " +
-                    " where o.ownerId = :weixinId ")
+                    " where o.enterpriseId = :weixinId ")
                     .setParameter("weixinId", weixinId)
                     .getResultList();
 
@@ -504,7 +504,7 @@ public class WeixinDaoImpl extends AbstractDao implements WeixinDao {
         EntityManager em = createEntityManager();
         try {
             List<WeixinUser> users = em.createQuery("select o from WeixinUser o " +
-                    " where o.ownerId = :weixinId " +
+                    " where o.enterpriseId = :weixinId " +
                     " and o.weixinOpenId = :weixinOpenId")
                     .setParameter("weixinId", weixinId)
                     .setParameter("weixinOpenId", weixinOpenId)
@@ -524,7 +524,7 @@ public class WeixinDaoImpl extends AbstractDao implements WeixinDao {
         EntityManager em = createEntityManager();
         try {
             List<WeixinUser> users = em.createQuery("select o from WeixinUser o " +
-                    " where o.ownerId = :weixinId " +
+                    " where o.enterpriseId = :weixinId " +
                     " and o.id = :userId")
                     .setParameter("weixinId", weixinId)
                     .setParameter("userId", userId)

@@ -21,14 +21,12 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.log4j.Logger;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -908,7 +906,7 @@ public class WeixinServiceImpl implements WeixinService {
             String openId = (String)array.get(i);
             WeixinUser user = new WeixinUser();
             user.setWeixinOpenId(openId);
-            user.setOwnerId(enterpriseId);
+            user.setEnterpriseId(enterpriseId);
 
 
             WeixinUserInfo userDetail = getUserInfo(enterpriseId, openId);
@@ -926,7 +924,7 @@ public class WeixinServiceImpl implements WeixinService {
             }
 
             // 将用户列表保存到本地
-            WeixinUser user0 = weixinDao.searchWeixinUser(user.getOwnerId(), user.getWeixinOpenId());
+            WeixinUser user0 = weixinDao.searchWeixinUser(user.getEnterpriseId(), user.getWeixinOpenId());
             if (user0 == null) {
                 int status = weixinDao.createWeixinUser(user);
             } else {
@@ -1301,7 +1299,7 @@ public class WeixinServiceImpl implements WeixinService {
             String openId = (String)array.get(i);
             WeixinUser user = new WeixinUser();
             user.setWeixinOpenId(openId);
-            user.setOwnerId(enterpriseId);
+            user.setEnterpriseId(enterpriseId);
             int status = weixinDao.createWeixinUser(user);
             if(status==1) saveCount++;
         }
@@ -1375,7 +1373,7 @@ public class WeixinServiceImpl implements WeixinService {
             int count = (Integer)jsonObject.get("count");
 
             WeixinGroup group = new WeixinGroup();
-            group.setWeixinId(enterpriseId);
+            group.setEnterpriseId(enterpriseId);
             group.setGroupId(groupId);
             group.setGroupName(groupName);
             group.setCount(count);
@@ -1484,7 +1482,7 @@ public class WeixinServiceImpl implements WeixinService {
         int groupId = (Integer)jsonObject.get("id");
 
         WeixinGroup weixinGroup = new WeixinGroup();
-        weixinGroup.setWeixinId(enterpriseId);
+        weixinGroup.setEnterpriseId(enterpriseId);
         weixinGroup.setGroupId(groupId);
         weixinGroup.setGroupName(groupName);
 

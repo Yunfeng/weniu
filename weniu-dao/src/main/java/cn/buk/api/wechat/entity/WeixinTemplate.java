@@ -7,7 +7,7 @@ import java.util.Date;
  * 微信模板消息的模板
  */
 @Entity
-@Table(name="weixin_template", uniqueConstraints = @UniqueConstraint(name = "uk_wx_template", columnNames = {"weixin_id", "template_id"}))
+@Table(name="weixin_template", uniqueConstraints = @UniqueConstraint(name = "uk_wx_template", columnNames = {"enterprise_id", "template_id"}))
 public class WeixinTemplate {
 
     public static final String BUSINESS_TPL_CHECK_IN = "001"; // 签到成功业务通知

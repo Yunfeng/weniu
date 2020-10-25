@@ -17,8 +17,8 @@ public class WeixinGroup {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(name="weixin_id")
-    private int weixinId;
+    @Column(name="enterprise_id")
+    private int enterpriseId;
 
     @Column(name="group_id")
     private int groupId;
@@ -36,12 +36,12 @@ public class WeixinGroup {
         this.id = id;
     }
 
-    public int getWeixinId() {
-        return weixinId;
+    public int getEnterpriseId() {
+        return enterpriseId;
     }
 
-    public void setWeixinId(int weixinId) {
-        this.weixinId = weixinId;
+    public void setEnterpriseId(int weixinId) {
+        this.enterpriseId = weixinId;
     }
 
     public int getGroupId() {
