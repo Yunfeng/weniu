@@ -72,7 +72,7 @@ public class WeixinDaoImpl extends AbstractDao implements WeixinDao {
         EntityManager em = createEntityManager();
         try {
             List<Token> tokens = em.createQuery("select o from Token o " +
-                    "where o.weixinId = :weixinId and o.weixinType = :weixinType and o.msgType = :msgType " +
+                    "where o.enterpriseId = :weixinId and o.weixinType = :weixinType and o.msgType = :msgType " +
                     "order by o.id desc", Token.class)
                     .setParameter("weixinId", weixinId)
                     .setParameter("weixinType", weixinType)
@@ -185,7 +185,7 @@ public class WeixinDaoImpl extends AbstractDao implements WeixinDao {
         EntityManager em = createEntityManager();
         try {
             List<WeixinTemplate> list =  em.createQuery("select o from WeixinTemplate o " +
-                    "where o.ownerId = :ownerId and o.businessId = :id", WeixinTemplate.class)
+                    "where o.enterpriseId = :ownerId and o.businessId = :id", WeixinTemplate.class)
                     .setParameter("ownerId",ownerId)
                     .setParameter("id", id)
                     .getResultList();
@@ -202,7 +202,7 @@ public class WeixinDaoImpl extends AbstractDao implements WeixinDao {
         EntityManager em = createEntityManager();
         try {
             List<WeixinTemplate> list =  em.createQuery("select o from WeixinTemplate o " +
-                    "where o.ownerId = :ownerId ", WeixinTemplate.class)
+                    "where o.enterpriseId = :ownerId ", WeixinTemplate.class)
                     .setParameter("ownerId",ownerId)
                     .getResultList();
 
@@ -347,7 +347,8 @@ public class WeixinDaoImpl extends AbstractDao implements WeixinDao {
     public List<WeixinMaterial> searchMaterials(int enterpriseId, String mediaId) {
         EntityManager em = createEntityManager();
         try {
-            return em.createQuery("select o from WeixinMaterial o where o.ownerId = :ownerId and o.mediaId = :mediaId")
+            return em.createQuery("select o from WeixinMaterial o " +
+                    "where o.enterpriseId = :ownerId and o.mediaId = :mediaId", WeixinMaterial.class)
                     .setParameter("ownerId", enterpriseId)
                     .setParameter("mediaId", mediaId)
                     .getResultList();
@@ -374,7 +375,8 @@ public class WeixinDaoImpl extends AbstractDao implements WeixinDao {
     public List<WeixinNews> searchWeixinNews(int weixinId) {
         EntityManager em = createEntityManager();
         try {
-            return em.createQuery("select o from WeixinNews o where o.enterpriseId = :enterpriseId order by o.displayOrder")
+            return em.createQuery("select o from WeixinNews o " +
+                    "where o.enterpriseId = :enterpriseId order by o.displayOrder", WeixinNews.class)
                     .setParameter("enterpriseId", weixinId)
                     .getResultList();
 

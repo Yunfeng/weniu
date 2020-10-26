@@ -1133,7 +1133,7 @@ public class WeixinServiceImpl implements WeixinService {
                     + appId
                     + "&redirect_uri=" + URLEncoder.encode(url0, "UTF-8")
                     + "&response_type=code"
-                    + "&scope=snsapi_base" +
+                    + "&scope=snsapi_userinfo" +
                     "&state=" + "wxs_" + enterpriseId +
                     "#wechat_redirect";
         } catch (UnsupportedEncodingException e) {
