@@ -1,22 +1,18 @@
 package cn.buk.api.wechat.dto;
 
-import org.apache.log4j.Logger;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
-import org.dom4j.tree.AbstractAttribute;
 
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 /**
  * Created by yfdai on 2017/3/16.
  */
 public class WxData {
-    private static Logger logger = Logger.getLogger(WxData.class);
 
     private String toUserName;
     private String fromUserName;
@@ -123,7 +119,7 @@ public class WxData {
         return result;
     }
 
-    private Map<String, Object> map = new HashMap<>();
+    private final Map<String, Object> map = new HashMap<>();
 
     public void setMap(String key, Object value) {
         if (key != null && value != null) {

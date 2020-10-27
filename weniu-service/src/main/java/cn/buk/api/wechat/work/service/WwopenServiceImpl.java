@@ -1,6 +1,5 @@
 package cn.buk.api.wechat.work.service;
 
-import cn.buk.api.wechat.dao.WeixinDao;
 import cn.buk.api.wechat.entity.*;
 import cn.buk.api.wechat.util.HttpUtil;
 import cn.buk.api.wechat.work.dto.*;
@@ -11,7 +10,6 @@ import com.qq.weixin.mp.aes.WXBizMsgCrypt;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -19,10 +17,10 @@ import java.util.List;
 
 public class WwopenServiceImpl extends BaseService implements WwopenService {
 
-    private static Logger logger = Logger.getLogger(WwopenServiceImpl.class);
+    private static final Logger logger = Logger.getLogger(WwopenServiceImpl.class);
 
-    @Autowired
-    private WeixinDao weixinDao;
+//    @Autowired
+//    private WeixinDao weixinDao;
 
     /**
      * 获取服务商的token
@@ -159,8 +157,7 @@ public class WwopenServiceImpl extends BaseService implements WwopenService {
 
         WXBizMsgCrypt wxcpt = new WXBizMsgCrypt(entConfig.getToken(), entConfig.getEncodingAESKey(), corpId1);
 
-        String sEchoStr = wxcpt.VerifyURL(signature, timestamp, nonce, msg_encrypt);
-        return sEchoStr;
+        return wxcpt.VerifyURL(signature, timestamp, nonce, msg_encrypt);
     }
 
 
@@ -183,9 +180,7 @@ public class WwopenServiceImpl extends BaseService implements WwopenService {
 
         logger.info(jsonStr);
 
-        WwpPreAuthCode info = JSON.parseObject(jsonStr, WwpPreAuthCode.class);
-
-        return info;
+        return JSON.parseObject(jsonStr, WwpPreAuthCode.class);
     }
 
     /**
@@ -206,9 +201,7 @@ public class WwopenServiceImpl extends BaseService implements WwopenService {
         String jsonStr = HttpUtil.postUrl(requestUrl, jsonObject.toJSONString());
         logger.info(jsonStr);
 
-        WwpRegisterCode info = JSON.parseObject(jsonStr, WwpRegisterCode.class);
-
-        return info;
+        return JSON.parseObject(jsonStr, WwpRegisterCode.class);
     }
 
     /**
@@ -278,8 +271,7 @@ public class WwopenServiceImpl extends BaseService implements WwopenService {
         String jsonStr = HttpUtil.postUrl(url, jsonObject.toJSONString());
 
         //判断返回结果
-        WwpPermanentCorpAuthInfo info = JSON.parseObject(jsonStr, WwpPermanentCorpAuthInfo.class);
-        return info;
+        return JSON.parseObject(jsonStr, WwpPermanentCorpAuthInfo.class);
     }
 
 
@@ -380,9 +372,8 @@ public class WwopenServiceImpl extends BaseService implements WwopenService {
 
 
         //判断返回结果
-        WwpLoginInfo info = JSON.parseObject(jsonStr, WwpLoginInfo.class);
 
-        return info;
+        return JSON.parseObject(jsonStr, WwpLoginInfo.class);
     }
 
     @Override
@@ -406,9 +397,8 @@ public class WwopenServiceImpl extends BaseService implements WwopenService {
 
 
         //判断返回结果
-        UserInfoResponse info = JSON.parseObject(jsonStr, UserInfoResponse.class);
 
-        return info;
+        return JSON.parseObject(jsonStr, UserInfoResponse.class);
     }
 
     @Override
@@ -429,9 +419,8 @@ public class WwopenServiceImpl extends BaseService implements WwopenService {
 
 
         //判断返回结果
-        UserDetailResponse info = JSON.parseObject(jsonStr, UserDetailResponse.class);
 
-        return info;
+        return JSON.parseObject(jsonStr, UserDetailResponse.class);
     }
 
     @Override

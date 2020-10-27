@@ -1,6 +1,6 @@
 package cn.buk.api.wechat.util;
 
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Formatter;
@@ -30,14 +30,10 @@ public class SignUtil {
         {
             MessageDigest crypt = MessageDigest.getInstance("SHA-1");
             crypt.reset();
-            crypt.update(string1.getBytes("UTF-8"));
+            crypt.update(string1.getBytes(StandardCharsets.UTF_8));
             signature = byteToHex(crypt.digest());
         }
         catch (NoSuchAlgorithmException e)
-        {
-            e.printStackTrace();
-        }
-        catch (UnsupportedEncodingException e)
         {
             e.printStackTrace();
         }

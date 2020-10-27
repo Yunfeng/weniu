@@ -25,7 +25,7 @@ import static cn.buk.api.wechat.entity.WeixinEntConfig.WORK_WX_DEFAULT;
  */
 public class WorkWeixinServiceImpl extends BaseService implements WorkWeixinService {
 
-    private static Logger logger = Logger.getLogger(WorkWeixinServiceImpl.class);
+    private static final Logger logger = Logger.getLogger(WorkWeixinServiceImpl.class);
 
     /**
      * 是否在控制台输出
@@ -114,8 +114,7 @@ public class WorkWeixinServiceImpl extends BaseService implements WorkWeixinServ
 
         WXBizMsgCrypt wxcpt = new WXBizMsgCrypt(entConfig.getToken(), entConfig.getEncodingAESKey(), corpId1);
 
-        String sEchoStr = wxcpt.VerifyURL(signature, timestamp, nonce, msg_encrypt);
-        return sEchoStr;
+        return wxcpt.VerifyURL(signature, timestamp, nonce, msg_encrypt);
     }
 
     public UserInfoResponse getUserInfo(int enterpriseId, String code) {

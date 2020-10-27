@@ -1,7 +1,6 @@
 package cn.buk.api.wechat.dto;
 
 import java.util.Date;
-import java.util.List;
 
 /**
  * Created by yfdai on 2017/2/24.

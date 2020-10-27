@@ -4,7 +4,6 @@ import static cn.buk.api.wechat.entity.WeixinEntConfig.WORK_WX_EXTERNAL_CONTACTS
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.when;
 
@@ -14,7 +13,6 @@ import cn.buk.api.wechat.entity.WeixinEntConfig;
 import cn.buk.api.wechat.work.dto.ExternalContactDetailResponse;
 import cn.buk.api.wechat.work.dto.ExternalContactFollowUsersResponse;
 import cn.buk.api.wechat.work.dto.ExternalContactListResponse;
-import java.util.Date;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -28,7 +26,7 @@ class WorkWeixinServiceTest {
   private WeixinDao weixinDao;
 
   @InjectMocks
-  private WorkWeixinService service = new WorkWeixinServiceImpl(true);
+  private final WorkWeixinService service = new WorkWeixinServiceImpl(true);
 
   @BeforeEach
   void setUp() {

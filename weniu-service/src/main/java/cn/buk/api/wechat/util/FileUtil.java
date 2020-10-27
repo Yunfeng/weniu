@@ -10,9 +10,9 @@ import java.io.*;
  * To change this template use File | Settings | File Templates.
  */
 public class FileUtil {
-    public static final String file2String(String filename, String charset) {
+    public static String file2String(String filename, String charset) {
         BufferedReader br;
-        StringBuilder strBlder = new StringBuilder("");
+        StringBuilder strBlder = new StringBuilder();
         File file = new File(filename);
         try {
             br = new BufferedReader(new InputStreamReader(new FileInputStream(file), charset));

@@ -21,14 +21,14 @@ import java.util.List;
  */
 public class HttpUtil extends BaseHttpClient {
 
-    private static Logger logger = Logger.getLogger(HttpUtil.class);
+    private static final Logger logger = Logger.getLogger(HttpUtil.class);
 
     public static String getUrl(String url, List<NameValuePair> params) {
         //TODO 判断params有的话，还要判断url的结果字符是否为"?"
         String uri = url;
         if (params != null) uri += URLEncodedUtils.format(params, "UTF-8");
 
-        logger.info(uri.toString());
+        logger.info(uri);
 
         CloseableHttpClient httpClient = createHttpClient();
         RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(SO_TIMEOUT).setConnectTimeout(CONNECTION_TIMEOUT).build();

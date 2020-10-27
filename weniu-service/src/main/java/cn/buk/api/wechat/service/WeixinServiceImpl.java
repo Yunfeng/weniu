@@ -28,6 +28,7 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -41,7 +42,7 @@ import static cn.buk.api.wechat.util.HttpUtil.sendResponse;
  */
 public class WeixinServiceImpl implements WeixinService {
 
-    private static Logger logger = Logger.getLogger(WeixinServiceImpl.class);
+    private static final Logger logger = Logger.getLogger(WeixinServiceImpl.class);
 
     /**
      * 文本的客服消息
@@ -112,7 +113,7 @@ public class WeixinServiceImpl implements WeixinService {
 
             OutputStream output = conn.getOutputStream();
             output.write(("--" + boundary + "\r\n").getBytes());
-            output.write(String.format("Content-Disposition: form-data; name=\"media\"; filename=\"%s\"\r\n", file.getName()).getBytes("UTF-8"));
+            output.write(String.format("Content-Disposition: form-data; name=\"media\"; filename=\"%s\"\r\n", file.getName()).getBytes(StandardCharsets.UTF_8));
             output.write("Content-Type: image/jpeg \r\n\r\n".getBytes());
             byte[] data = new byte[1024];
             int len = 0;
@@ -127,7 +128,7 @@ public class WeixinServiceImpl implements WeixinService {
             InputStream resp = conn.getInputStream();
             StringBuffer sb = new StringBuffer();
             while ((len = resp.read(data)) > -1)
-                sb.append(new String(data, 0, len, "utf-8"));
+                sb.append(new String(data, 0, len, StandardCharsets.UTF_8));
             resp.close();
             result = sb.toString();
             //System.out.println(result);
@@ -254,7 +255,6 @@ public class WeixinServiceImpl implements WeixinService {
      * @param weixinOauthCode code说明 ： code作为换取access_token的票据，每次用户授权带上的code将不一样，code只能使用一次，5分钟未被使用自动过期。
      */
     public WeixinOauthToken getOauthToken(final int enterpriseId, final String weixinOauthCode) {
-        final String url = WX_API_OAUTH;
 
         WeixinServiceConfig config = getWeixinServiceConfig(enterpriseId);
 
@@ -264,7 +264,7 @@ public class WeixinServiceImpl implements WeixinService {
         params.add(new BasicNameValuePair("code", weixinOauthCode));
         params.add(new BasicNameValuePair("grant_type", "authorization_code"));
 
-        final String jsonStr = HttpUtil.getUrl(url, params);
+        final String jsonStr = HttpUtil.getUrl(WX_API_OAUTH, params);
 
         //判断返回结果
         JSONObject param = JSON.parseObject(jsonStr);
@@ -319,20 +319,15 @@ public class WeixinServiceImpl implements WeixinService {
      * @return
      */
     public String getCustomMenu(final int enterpriseId) {
-        final String url = WX_API_MENU_INFO;
 
         Token token = getToken(enterpriseId);
 
         List<NameValuePair> params = new ArrayList<>();
         params.add(new BasicNameValuePair("access_token", token.getAccess_token()));
 
-        String jsonStr = HttpUtil.getUrl(url, params);
+        String jsonStr = HttpUtil.getUrl(WX_API_MENU_INFO, params);
 
-        try {
-            jsonStr = new String(jsonStr.getBytes("ISO-8859-1"), "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
+        jsonStr = new String(jsonStr.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8);
 
         return jsonStr;
     }
@@ -599,9 +594,7 @@ public class WeixinServiceImpl implements WeixinService {
 //            e.printStackTrace();
 //        }
 
-        WxMaterials rs = JSON.parseObject(result, WxMaterials.class);
-
-        return rs;
+        return JSON.parseObject(result, WxMaterials.class);
     }
 
     /**
@@ -625,7 +618,7 @@ public class WeixinServiceImpl implements WeixinService {
 
         WxMediaResponse rs = JSON.parseObject(result, WxMediaResponse.class);
 
-        if (rs.getErrcode() <= 0) {
+        if (rs != null && rs.getErrcode() <= 0) {
             //上传成功
             WeixinMaterial wm = new WeixinMaterial();
             wm.setEnterpriseId(enterpriseId);
@@ -664,11 +657,7 @@ public class WeixinServiceImpl implements WeixinService {
 
         logger.info(result);
 
-        WxMediaResponse rs = JSON.parseObject(result, WxMediaResponse.class);
-//        {
-//            "media_id":MEDIA_ID
-//        }
-        return rs;
+        return JSON.parseObject(result, WxMediaResponse.class);
     }
 
     private void replaceImageUrl(final int enterpriseId, List<WxNews> articles) {
@@ -724,9 +713,7 @@ public class WeixinServiceImpl implements WeixinService {
 //        }
         logger.info(result);
 
-        WxMediaResponse rs = JSON.parseObject(result, WxMediaResponse.class);
-
-        return rs;
+        return JSON.parseObject(result, WxMediaResponse.class);
     }
 
     /**
@@ -774,9 +761,7 @@ public class WeixinServiceImpl implements WeixinService {
 
         String result = HttpUtil.postUrl(url, jsonBody);
 
-        WxMediaResponse rs = JSON.parseObject(result, WxMediaResponse.class);
-
-        return rs;
+        return JSON.parseObject(result, WxMediaResponse.class);
     }
 
     /**
@@ -834,9 +819,7 @@ public class WeixinServiceImpl implements WeixinService {
 
         String result = HttpUtil.getUrl(url, params);
 
-        WxMaterialSummary summary =  JSON.parseObject(result, WxMaterialSummary.class);
-
-        return summary;
+        return JSON.parseObject(result, WxMaterialSummary.class);
     }
 
     /**
@@ -991,7 +974,7 @@ public class WeixinServiceImpl implements WeixinService {
         String result = HttpUtil.postUrl(url, jsonBody);
 
         try {
-            result = new String(result.getBytes("ISO-8859-1"), "UTF-8");
+            result = new String(result.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8);
             logger.debug(result);
 
         } catch (Exception ex) {
@@ -1010,6 +993,10 @@ public class WeixinServiceImpl implements WeixinService {
         logger.debug("request xml: " + requestXml);
 
         WxData rq = WxData.fromXml(requestXml);
+
+        if (rq == null) {
+            logger.error(requestXml);
+        }
 
         if ("text".equalsIgnoreCase(rq.getMsgType()) ||
                 "image".equalsIgnoreCase(rq.getMsgType()) ||
@@ -1036,7 +1023,6 @@ public class WeixinServiceImpl implements WeixinService {
         if ("event".equalsIgnoreCase(rq.getMsgType())) {
             this.processWeixinEvent(enterpriseId, response, rq);
 
-            return;
         }
     }
 
@@ -1106,7 +1092,7 @@ public class WeixinServiceImpl implements WeixinService {
         BufferedReader br;
 
         try {
-            br = new BufferedReader(new InputStreamReader(request.getInputStream(), "utf-8"));
+            br = new BufferedReader(new InputStreamReader(request.getInputStream(), StandardCharsets.UTF_8));
             String line;
             StringBuilder sb = new StringBuilder();
             while ((line = br.readLine()) != null) {
@@ -1184,7 +1170,7 @@ public class WeixinServiceImpl implements WeixinService {
         String result = HttpUtil.postUrl(url, jsonBody);
 
         try {
-            result = new String(result.getBytes("ISO-8859-1"), "UTF-8");
+            result = new String(result.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8);
             logger.debug(result);
 
         } catch (Exception ex) {
@@ -1232,7 +1218,7 @@ public class WeixinServiceImpl implements WeixinService {
         String url = null; //PropertiesUtil.getProperty(AppConfig.API_WEIXIN_UPDATE_GROUP);
 
         Token token = getToken(enterpriseId);
-        url += "access_token=" + token.getAccess_token();
+        url = "access_token=" + token.getAccess_token();
 
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("name", groupName);
@@ -1449,8 +1435,7 @@ public class WeixinServiceImpl implements WeixinService {
         System.out.println(jsonBody);
         System.out.println(token.getAccess_token());
 
-        String jsonStr = HttpUtil.postUrl(url, jsonBody);
-        return jsonStr;
+        return HttpUtil.postUrl(url, jsonBody);
     }
 
     public JsonResult apiCreateGroup(final int enterpriseId, String groupName) {
@@ -1544,8 +1529,7 @@ public class WeixinServiceImpl implements WeixinService {
         System.out.println(jsonBody);
         System.out.println(token.getAccess_token());
 
-        String jsonStr = HttpUtil.postUrl(url, jsonBody);
-        return jsonStr;
+        return HttpUtil.postUrl(url, jsonBody);
         //return jsonBody;
     }
 
@@ -1553,8 +1537,7 @@ public class WeixinServiceImpl implements WeixinService {
         Token token = getToken(enterpriseId);
         String url = "https://api.weixin.qq.com/cgi-bin/menu/delete?access_token=" + token.getAccess_token();
 
-        String jsonStr = HttpUtil.getUrl(url, null);
-        return jsonStr;
+        return HttpUtil.getUrl(url, null);
     }
 
     /**
@@ -1676,9 +1659,7 @@ public class WeixinServiceImpl implements WeixinService {
         Date subscribeTime = createDate(time*1000);
         user.setSubscribe_time(subscribeTime);
 
-        int status = weixinDao.updateWeixinUser(user);
-
-        return status;
+        return weixinDao.updateWeixinUser(user);
     }
 
     private static Date createDate(long ms) {

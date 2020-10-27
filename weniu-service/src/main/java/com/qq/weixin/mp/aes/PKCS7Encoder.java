@@ -9,13 +9,14 @@
 package com.qq.weixin.mp.aes;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 /**
  * 提供基于PKCS7算法的加解密接口.
  */
 class PKCS7Encoder {
-	static Charset CHARSET = Charset.forName("utf-8");
+	static Charset CHARSET = StandardCharsets.UTF_8;
 	static int BLOCK_SIZE = 32;
 
 	/**

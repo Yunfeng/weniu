@@ -198,6 +198,7 @@ public interface WeixinService {
    * @param jsonFilename 保存自定义菜单信息的文件名
    * @return
    */
+  @Deprecated
   BaseResponse createCustomMenu(final int enterpriseId, String jsonFilename);
 
   int createCustomMenu(int enterpriseId, String name, String type, String url, String key, int level, int parentId);

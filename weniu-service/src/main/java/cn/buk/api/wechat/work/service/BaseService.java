@@ -21,7 +21,7 @@ import static cn.buk.api.wechat.entity.WeixinEntConfig.WORK_WX_DEFAULT;
  */
 public class BaseService {
 
-    private static Logger logger = Logger.getLogger(BaseService.class);
+    private static final Logger logger = Logger.getLogger(BaseService.class);
 
     @Autowired
     protected WeixinDao weixinDao;
@@ -35,6 +35,7 @@ public class BaseService {
         WeixinEntConfig entConfig = weixinDao.getWeixinEntConfig(enterpriseId, msgType);
         if (entConfig == null) {
             logger.error("No WeixinEntConfig: " + enterpriseId + ", " + msgType);
+            return null;
         }
 
         Token token = weixinDao.retrieveWeixinToken(enterpriseId, Token.WORK_WEIXIN_TOKEN, msgType);

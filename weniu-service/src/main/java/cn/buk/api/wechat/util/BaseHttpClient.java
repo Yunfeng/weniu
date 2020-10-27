@@ -11,10 +11,10 @@ import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
 public class BaseHttpClient {
 
     // HTTP connection timeout
-    protected static int CONNECTION_TIMEOUT = 100000;
+    protected static final int CONNECTION_TIMEOUT = 100000;
 
-    // HTTP scoket connection timeout
-    protected static int SO_TIMEOUT = 120000;
+    // HTTP socket connection timeout
+    protected static final int SO_TIMEOUT = 120000;
 
     protected static CloseableHttpClient createHttpClient() {
         return createHttpClient(null, null);
@@ -25,7 +25,7 @@ public class BaseHttpClient {
         try {
             if (proxyPort != null)
                 port = Integer.parseInt(proxyPort);
-        } catch (Exception ex) {
+        } catch (Exception ignored) {
         }
 
         CloseableHttpClient httpClient;
