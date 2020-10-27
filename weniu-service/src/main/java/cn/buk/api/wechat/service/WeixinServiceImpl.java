@@ -433,65 +433,6 @@ public class WeixinServiceImpl implements WeixinService {
     }
 
 
-    /**
-     * @Override
-     * @param enterpriseId
-     * @param msg
-     * @param weixinIds
-     * @param deptIds
-     * @param tagIds
-     */
-    public void sendTextMsg(int enterpriseId, String msg, String weixinIds, String deptIds, String tagIds) {
-        if (weixinIds != null && weixinIds.equalsIgnoreCase("NONE")) return;
-
-        WeixinEntConfig cfg = weixinDao.getWeixinEntConfig(enterpriseId, WeixinEntConfig.WORK_WX_DEFAULT);
-        if (cfg == null) {
-            logger.warn("No weixin config.");
-            return;
-        }
-
-        logger.info(cfg.getEnterpriseId() + ", " + enterpriseId + ": " + cfg.getId() + ", " + cfg.getCorpId() + ", " + cfg.getAgentId() + ", " + cfg.getSecret());
-
-        TextMessage txtMsg = new TextMessage();
-        txtMsg.setAgentid(cfg.getAgentId());
-
-        if (weixinIds != null && weixinIds.trim().length() > 0) {
-            txtMsg.setTouser( weixinIds.replaceAll(";", "|"));
-        }
-
-        if (deptIds != null && deptIds.trim().length() > 0) {
-            txtMsg.setToparty(deptIds.replaceAll(";", "|"));
-        }
-
-        if (tagIds != null && tagIds.trim().length() > 0) {
-            txtMsg.setTotag(tagIds.replaceAll(";", "|"));
-        }
-
-
-        txtMsg.setContent(msg  + ". " + DateUtil.formatDate(DateUtil.getCurDateTime(), "MM-dd HH:mm:ss"));
-
-        String jsonStr = com.alibaba.fastjson.JSON.toJSONString(txtMsg);
-
-
-        Token token = getToken(enterpriseId, WeixinEntConfig.WORK_WX_DEFAULT);
-        logger.info("token: " + token.getId() + ", " + token.getEnterpriseId() + ", " + token.getMsgType() + ", " + token.getAccess_token());
-        logger.info(jsonStr);
-
-        JsonResult jsonResult = doSendTextMsg(jsonStr, token);
-
-        if (jsonResult.getErrcode() == 0) {
-            //发送成功
-            //return jsonResult;
-        } else if (jsonResult.getErrcode() == 40014) {
-            //invalid access_token
-            //try again
-            System.out.println("try again ............................................................................");
-            token = getToken(enterpriseId, WeixinEntConfig.WORK_WX_DEFAULT, true);
-            doSendTextMsg(jsonStr, token);
-        } else {
-            logger.error(jsonResult.getErrcode() + " - " + jsonResult.getErrmsg());
-        }
-    }
 
     /**
      * 获取js-sdk ticket, 可刷新
@@ -1562,15 +1503,7 @@ public class WeixinServiceImpl implements WeixinService {
         return JSON.parseObject(jsonStr, BaseResponse.class);
     }
 
-    private JsonResult doSendTextMsg(final String jsonStr, final Token token) {
-        String url = "https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token=" + token.getAccess_token() ;
 
-        String returnStr = HttpUtil.postUrl(url, jsonStr);
-
-        System.out.println("doSendTextMsg: " + returnStr);
-
-        return JSON.parseObject(returnStr, JsonResult.class);
-    }
 
     public Token getToken(int enterpriseId, int msgType) {
         return getToken(enterpriseId, msgType,false);

@@ -124,4 +124,6 @@ public interface WorkWeixinService {
    */
   ExternalContactDetailResponse getExternalContactDetail(final String accessToken, final String externalUserId);
 
+  void sendTextMsg(int enterpriseId, String msg, String weixinIds, String deptIds, String tagIds);
+
 }

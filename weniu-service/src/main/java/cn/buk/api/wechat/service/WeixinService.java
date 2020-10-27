@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 /**
+ * 微信公众号服务类
  * Created by yfdai on 2017/2/6.
  */
 public interface WeixinService {
@@ -271,7 +272,6 @@ public interface WeixinService {
   WeixinGroup getGroupInfo(final int enterpriseId, int groupId);
 
 
-  void sendTextMsg(int enterpriseId, String msg, String weixinIds, String deptIds, String tagIds);
 
   /**
    * 生成 微信授权的 url
