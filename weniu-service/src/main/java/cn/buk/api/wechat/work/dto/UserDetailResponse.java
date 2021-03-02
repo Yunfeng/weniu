@@ -1,10 +1,8 @@
 package cn.buk.api.wechat.work.dto;
 
-public class UserDetailResponse {
+import cn.buk.api.wechat.dto.BaseResponse;
 
-    private int errcode;
-
-    private String errmsg;
+public class UserDetailResponse extends BaseResponse {
 
     private String userid;
 
@@ -88,22 +86,6 @@ public class UserDetailResponse {
 
     public void setAvatar(String avatar) {
         this.avatar = avatar;
-    }
-
-    public int getErrcode() {
-        return errcode;
-    }
-
-    public void setErrcode(int errcode) {
-        this.errcode = errcode;
-    }
-
-    public String getErrmsg() {
-        return errmsg;
-    }
-
-    public void setErrmsg(String errmsg) {
-        this.errmsg = errmsg;
     }
 
     public String getCorpid() {

@@ -16,7 +16,6 @@ public abstract class AbstractDao {
 
 	/**
 	 * 保存新对象
-	 * @param object
 	 * @return
 	 * 1 表示成功
 	 * -100 表示出错

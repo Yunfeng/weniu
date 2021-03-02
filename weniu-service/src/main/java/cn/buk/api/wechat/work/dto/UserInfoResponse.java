@@ -1,10 +1,8 @@
 package cn.buk.api.wechat.work.dto;
 
-public class UserInfoResponse {
+import cn.buk.api.wechat.dto.BaseResponse;
 
-    private int errcode;
-
-    private String errmsg;
+public class UserInfoResponse extends BaseResponse {
 
     private String deviceId; //手机设备号（删除重新安装会改变，升级不变）
 
@@ -19,22 +17,6 @@ public class UserInfoResponse {
     private String user_ticket; //最大512字节
 
     private int expires_in; // 秒
-
-    public int getErrcode() {
-        return errcode;
-    }
-
-    public void setErrcode(int errcode) {
-        this.errcode = errcode;
-    }
-
-    public String getErrmsg() {
-        return errmsg;
-    }
-
-    public void setErrmsg(String errmsg) {
-        this.errmsg = errmsg;
-    }
 
     public String getDeviceId() {
         return deviceId;

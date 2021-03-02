@@ -1,5 +1,6 @@
 package cn.buk.api.wechat.work.dto;
 
+import cn.buk.api.wechat.dto.BaseResponse;
 import com.alibaba.fastjson.annotation.JSONField;
 
 /**

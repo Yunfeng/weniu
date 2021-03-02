@@ -16,7 +16,7 @@ import java.util.Arrays;
  *
  * 计算消息签名接口.
  */
-public class SHA1 {
+class SHA1 {
 
 	/**
 	 * 用SHA1算法生成安全签名
@@ -38,7 +38,6 @@ public class SHA1 {
 				sb.append(array[i]);
 			}
 			String str = sb.toString();
-//			System.out.println(str);
 			// SHA1签名生成
 			MessageDigest md = MessageDigest.getInstance("SHA-1");
 			md.update(str.getBytes());

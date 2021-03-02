@@ -1,24 +1,18 @@
 package cn.buk.api.wechat.service;
 
 import cn.buk.api.wechat.dto.WxMaterials;
-import cn.buk.api.wechat.util.EncoderHandler;
 import cn.buk.api.wechat.work.dto.BaseAttr;
 import cn.buk.api.wechat.work.dto.WwUser;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.qq.weixin.mp.aes.AesException;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
-import org.junit.Before;
-import org.junit.Test;
-
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.qq.weixin.mp.aes.SHA1.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Created by yfdai on 2017/6/7.
@@ -27,7 +21,7 @@ public class WeixinServiceTest {
 
     private WeixinService weixinService;
 
-    @Before
+    @BeforeAll
     public void setup() {
         weixinService = new WeixinServiceImpl();
     }
@@ -133,38 +127,38 @@ public class WeixinServiceTest {
 //        System.out.println(JSON.toJSONString(user));
     }
 
-    @Test
-    public void testSha1Method() {
-        String token = "fa";
-        String timeStamp = "bfff";
-        String nonce = "caaa";
-        String echoStr = "dddd";
-
-        try {
-            String signature1 = getSHA1(token, timeStamp, nonce, echoStr);
-            System.out.println(signature1);
-
-            ArrayList<String> al = new ArrayList<>();
-            al.add(token);
-            al.add(timeStamp);
-            al.add(nonce);
-            al.add(echoStr);
-            Collections.sort(al);
-
-            String allString = "";
-            for (String temp : al) {
-                allString += temp;
-            }
-
-            System.out.println(allString);
-
-            String signature2 = EncoderHandler.encode("SHA1", allString);
-//            System.out.println(signature2);
-        } catch (AesException e) {
-            e.printStackTrace();
-        }
-    }
-
+//    @Test
+//    public void testSha1Method() {
+//        String token = "fa";
+//        String timeStamp = "bfff";
+//        String nonce = "caaa";
+//        String echoStr = "dddd";
+//
+//        try {
+//            String signature1 = getSHA1(token, timeStamp, nonce, echoStr);
+//            System.out.println(signature1);
+//
+//            ArrayList<String> al = new ArrayList<>();
+//            al.add(token);
+//            al.add(timeStamp);
+//            al.add(nonce);
+//            al.add(echoStr);
+//            Collections.sort(al);
+//
+//            String allString = "";
+//            for (String temp : al) {
+//                allString += temp;
+//            }
+//
+//            System.out.println(allString);
+//
+//            String signature2 = EncoderHandler.encode("SHA1", allString);
+////            System.out.println(signature2);
+//        } catch (AesException e) {
+//            e.printStackTrace();
+//        }
+//    }
+//
 
 
 }

@@ -27,6 +27,9 @@ public class BaseService {
     protected WeixinDao weixinDao;
 
 
+    protected Token getToken(int enterpriseId) {
+        return getToken(enterpriseId, false);
+    }
     protected Token getToken(int enterpriseId, boolean forced) {
         return getToken(enterpriseId, WORK_WX_DEFAULT, forced);
     }

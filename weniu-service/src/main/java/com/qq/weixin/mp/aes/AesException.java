@@ -1,5 +1,6 @@
 package com.qq.weixin.mp.aes;
 
+@SuppressWarnings("serial")
 public class AesException extends Exception {
 
 	public final static int OK = 0;
@@ -15,7 +16,7 @@ public class AesException extends Exception {
 	//public final static int DecodeBase64Error = -40010;
 	//public final static int GenReturnXmlError = -40011;
 
-	private final int code;
+	private int code;
 
 	private static String getMessage(int code) {
 		switch (code) {

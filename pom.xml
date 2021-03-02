@@ -4,7 +4,7 @@
 
   <groupId>cn.buk.api.wechat</groupId>
   <artifactId>weniu</artifactId>
-  <version>2.0.15-SNAPSHOT</version>
+  <version>2.1.5-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>weniu</name>
@@ -34,12 +34,13 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <springframework.version>5.2.9.RELEASE</springframework.version>
-    <hibernate.version>5.4.22.Final</hibernate.version>
+    <java.version>1.8</java.version>
+    <springframework.version>5.3.4</springframework.version>
+    <hibernate.version>5.4.28.Final</hibernate.version>
 
     <httpclient.version>4.5.13</httpclient.version>
 
-    <junit.jupiter.version>5.5.2</junit.jupiter.version>
+    <junit.jupiter.version>5.7.1</junit.jupiter.version>
     <log4j.version>2.12.1</log4j.version>
 
     <ognl.version>3.2.11</ognl.version>
@@ -155,7 +156,7 @@
       <dependency>
         <groupId>cn.buk.common</groupId>
         <artifactId>buk-common-util</artifactId>
-        <version>2.2.5</version>
+        <version>2.2.21</version>
       </dependency>
 
       <dependency>
@@ -187,7 +188,7 @@
       <dependency>
         <groupId>com.alibaba</groupId>
         <artifactId>fastjson</artifactId>
-        <version>1.2.60</version>
+        <version>1.2.75</version>
       </dependency>
 
       <dependency>
@@ -198,12 +199,12 @@
       </dependency>
 
       <!-- test -->
-      <dependency>
-        <groupId>org.junit.vintage</groupId>
-        <artifactId>junit-vintage-engine</artifactId>
-        <version>${junit.jupiter.version}</version>
-        <scope>test</scope>
-      </dependency>
+<!--      <dependency>-->
+<!--        <groupId>org.junit.vintage</groupId>-->
+<!--        <artifactId>junit-vintage-engine</artifactId>-->
+<!--        <version>${junit.jupiter.version}</version>-->
+<!--        <scope>test</scope>-->
+<!--      </dependency>-->
 
       <dependency>
         <groupId>org.junit.jupiter</groupId>
@@ -245,26 +246,11 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.8.1</version> <!-- this is critical -->
         <configuration>
-          <source>1.8</source>
-          <target>1.8</target>
+          <source>${java.version}</source>
+          <target>${java.version}</target>
         </configuration>
       </plugin>
-      <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-checkstyle-plugin -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-checkstyle-plugin</artifactId>
-        <version>3.1.1</version>
-        <configuration>
-        <logViolationsToConsole>true</logViolationsToConsole>
-        <checkstyleRules>
-          <module name="JavadocMethod">
-<!--            <property name="scope" value="public"/>-->
-<!--            <property name="allowUndeclaredRTE" value="true"/>-->
-<!--            <property name="allowMissingParamTags" value="false"/>-->
-          </module>
-        </checkstyleRules>
-        </configuration>
-      </plugin>
+
 
     </plugins>
   </build>

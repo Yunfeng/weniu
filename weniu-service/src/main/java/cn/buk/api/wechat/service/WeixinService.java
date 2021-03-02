@@ -280,4 +280,12 @@ public interface WeixinService {
    * @return
    */
   String buildUrlInWeixin(final int enterpriseId, String url);
+
+  /**
+   * 将长连接转化为短链接
+   * @param enterpriseId 企业id
+   * @param longUrl 长链接内容
+   * @return
+   */
+  Long2ShortUrlDto convertLong2ShortUlr(final int enterpriseId, final String longUrl);
 }

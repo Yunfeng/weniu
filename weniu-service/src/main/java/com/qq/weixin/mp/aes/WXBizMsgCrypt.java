@@ -14,7 +14,6 @@
 package com.qq.weixin.mp.aes;
 
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -40,27 +39,27 @@ import org.apache.commons.codec.binary.Base64;
  * </ol>
  */
 public class WXBizMsgCrypt {
-	static Charset CHARSET = StandardCharsets.UTF_8;
+	static Charset CHARSET = Charset.forName("utf-8");
 	Base64 base64 = new Base64();
 	byte[] aesKey;
 	String token;
-	String corpId;
+	String receiveid;
 
 	/**
 	 * 构造函数
 	 * @param token 企业微信后台，开发者设置的token
 	 * @param encodingAesKey 企业微信后台，开发者设置的EncodingAESKey
-	 * @param corpId 企业的corpid
+	 * @param receiveid, 不同场景含义不同，详见文档
 	 * 
 	 * @throws AesException 执行失败，请查看该异常的错误码和具体的错误信息
 	 */
-	public WXBizMsgCrypt(String token, String encodingAesKey, String corpId) throws AesException {
+	public WXBizMsgCrypt(String token, String encodingAesKey, String receiveid) throws AesException {
 		if (encodingAesKey.length() != 43) {
 			throw new AesException(AesException.IllegalAesKey);
 		}
 
 		this.token = token;
-		this.corpId = corpId;
+		this.receiveid = receiveid;
 		aesKey = Base64.decodeBase64(encodingAesKey + "=");
 	}
 
@@ -108,13 +107,13 @@ public class WXBizMsgCrypt {
 		byte[] randomStrBytes = randomStr.getBytes(CHARSET);
 		byte[] textBytes = text.getBytes(CHARSET);
 		byte[] networkBytesOrder = getNetworkBytesOrder(textBytes.length);
-		byte[] corpidBytes = corpId.getBytes(CHARSET);
+		byte[] receiveidBytes = receiveid.getBytes(CHARSET);
 
-		// randomStr + networkBytesOrder + text + corpid
+		// randomStr + networkBytesOrder + text + receiveid
 		byteCollector.addBytes(randomStrBytes);
 		byteCollector.addBytes(networkBytesOrder);
 		byteCollector.addBytes(textBytes);
-		byteCollector.addBytes(corpidBytes);
+		byteCollector.addBytes(receiveidBytes);
 
 		// ... + pad: 使用自定义的填充方式对明文进行补位填充
 		byte[] padBytes = PKCS7Encoder.encode(byteCollector.size());
@@ -169,29 +168,26 @@ public class WXBizMsgCrypt {
 			throw new AesException(AesException.DecryptAESError);
 		}
 
-		String xmlContent, from_corpid;
+		String xmlContent, from_receiveid;
 		try {
 			// 去除补位字符
 			byte[] bytes = PKCS7Encoder.decode(original);
 
-			// 分离16位随机字符串,网络字节序和corpId
+			// 分离16位随机字符串,网络字节序和receiveid
 			byte[] networkOrder = Arrays.copyOfRange(bytes, 16, 20);
 
 			int xmlLength = recoverNetworkBytesOrder(networkOrder);
 
 			xmlContent = new String(Arrays.copyOfRange(bytes, 20, 20 + xmlLength), CHARSET);
-			from_corpid = new String(Arrays.copyOfRange(bytes, 20 + xmlLength, bytes.length),
+			from_receiveid = new String(Arrays.copyOfRange(bytes, 20 + xmlLength, bytes.length),
 					CHARSET);
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new AesException(AesException.IllegalBuffer);
 		}
 
-		// corpid不相同的情况
-		if (!from_corpid.equals(corpId)) {
-			System.out.println("from_corpId: " + from_corpid);
-			System.out.println("corpId: " + corpId);
-			System.out.println("xmlContent: " + xmlContent);
+		// receiveid不相同的情况
+		if (!from_receiveid.equals(receiveid)) {
 			throw new AesException(AesException.ValidateCorpidError);
 		}
 		return xmlContent;
@@ -282,8 +278,6 @@ public class WXBizMsgCrypt {
 			throws AesException {
 		String signature = SHA1.getSHA1(token, timeStamp, nonce, echoStr);
 
-//		System.out.println("signature1: " + signature);
-//		System.out.println("signature0: " + msgSignature);
 		if (!signature.equals(msgSignature)) {
 			throw new AesException(AesException.ValidateSignatureError);
 		}

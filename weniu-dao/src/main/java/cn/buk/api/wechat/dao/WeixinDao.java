@@ -13,8 +13,6 @@ public interface WeixinDao {
 
     /**
      * 保存Token
-     * @param token
-     * @return
      */
     int createWeixinOauthToken(WeixinOauthToken token);
 
@@ -22,16 +20,11 @@ public interface WeixinDao {
 
     /**
      * 获取当前有效的token
-     *
-     * @return
      */
     Token retrieveWeixinToken(int weixinId, int weixinType, int msgType);
 
     /**
      * 保存Token
-     *
-     * @param token
-     * @return
      */
     int createWeixinToken(Token token);
 
@@ -70,7 +63,6 @@ public interface WeixinDao {
      * 获取企业微信的设置参数
      * @param enterpriseId 企业ID
      * @param msgType 消息类型
-     * @return
      */
     WeixinEntConfig getWeixinEntConfig(int enterpriseId, int msgType);
 
@@ -108,8 +100,6 @@ public interface WeixinDao {
 
     /**
      * 获取微信服务号的配置信息
-     * @param enterpriseId
-     * @return
      */
     WeixinServiceConfig getWeixinServiceConfig(int enterpriseId);
 }

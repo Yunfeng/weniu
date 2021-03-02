@@ -6,8 +6,6 @@ import java.util.Date;
 /**
  *
  * @author yfdai
- * @date 16/7/9
- *
  * 企业微信应用的API参数
  */
 @Entity

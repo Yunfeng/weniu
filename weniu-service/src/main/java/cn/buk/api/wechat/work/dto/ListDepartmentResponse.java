@@ -1,5 +1,7 @@
 package cn.buk.api.wechat.work.dto;
 
+import cn.buk.api.wechat.dto.BaseResponse;
+
 import java.util.List;
 
 public class ListDepartmentResponse extends BaseResponse {

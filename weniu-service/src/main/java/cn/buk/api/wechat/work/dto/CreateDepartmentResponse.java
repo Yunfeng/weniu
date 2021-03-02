@@ -1,5 +1,7 @@
 package cn.buk.api.wechat.work.dto;
 
+import cn.buk.api.wechat.dto.BaseResponse;
+
 public class CreateDepartmentResponse extends BaseResponse {
 
     private int id;

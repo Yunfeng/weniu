@@ -28,6 +28,7 @@ public class HttpUtil extends BaseHttpClient {
         String uri = url;
         if (params != null) uri += URLEncodedUtils.format(params, "UTF-8");
 
+        System.out.println(uri);
         logger.info(uri);
 
         CloseableHttpClient httpClient = createHttpClient();
@@ -76,6 +77,7 @@ public class HttpUtil extends BaseHttpClient {
 
             response.close();
         } catch (Exception e) {
+            e.printStackTrace();
             logger.error(e.getMessage());
         }
 

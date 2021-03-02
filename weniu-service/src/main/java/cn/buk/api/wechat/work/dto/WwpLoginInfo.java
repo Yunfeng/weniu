@@ -1,5 +1,7 @@
 package cn.buk.api.wechat.work.dto;
 
+import cn.buk.api.wechat.dto.BaseResponse;
+
 /**
  * 获取登录用户信息
  * https://qyapi.weixin.qq.com/cgi-bin/service/get_login_info?access_token=PROVIDER_ACCESS_TOKEN

@@ -1,18 +1,13 @@
 package cn.buk.api.wechat.work.service;
 
-import static cn.buk.api.wechat.entity.WeixinEntConfig.WORK_WX_EXTERNAL_CONTACTS;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.when;
-
 import cn.buk.api.wechat.dao.WeixinDao;
 import cn.buk.api.wechat.entity.Token;
 import cn.buk.api.wechat.entity.WeixinEntConfig;
 import cn.buk.api.wechat.work.dto.ExternalContactDetailResponse;
 import cn.buk.api.wechat.work.dto.ExternalContactFollowUsersResponse;
 import cn.buk.api.wechat.work.dto.ExternalContactListResponse;
+import cn.buk.api.wechat.work.dto.UploadMediaResponse;
+import cn.buk.util.DateUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -20,6 +15,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.io.File;
+import java.io.IOException;
+
+import static cn.buk.api.wechat.entity.WeixinEntConfig.WORK_WX_DEFAULT;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.when;
+
+@Disabled
 class WorkWeixinServiceTest {
 
   @Mock
@@ -33,32 +37,85 @@ class WorkWeixinServiceTest {
     MockitoAnnotations.initMocks(this);
   }
 
-  @Disabled
+//  @Disabled
   @Test
-  public void test_getToken() {
+  void test_getToken() {
 
-    WeixinEntConfig config = new WeixinEntConfig();
-    config.setEnterpriseId(24);
-    config.setCorpId("ww154883f946d16662");
-    //外部联系人
-    config.setMsgType(WORK_WX_EXTERNAL_CONTACTS);
-    config.setSecret("7R-HQNLb1O-2MoYQPEaVhe_oXCuK_KN1BJr9gJ7TPMc");
+    WeixinEntConfig config = createConfig();
 
 
     when(weixinDao.getWeixinEntConfig(anyInt(), anyInt())).thenReturn(config);
     when(weixinDao.retrieveWeixinToken(anyInt(), anyInt(), anyInt())).thenReturn(null);
 
-    service.getWorkWeixinToken(24, true);
+    service.getWorkWeixinToken(1, false);
 
   }
 
+  private WeixinEntConfig createConfig() {
+    WeixinEntConfig config = new WeixinEntConfig();
+    config.setEnterpriseId(1);
+    config.setCorpId("wx92bd521d408c3cc2");
+    //默认企业微信应用
+    config.setMsgType(WORK_WX_DEFAULT);
+    config.setAgentId(1);
+    config.setSecret("Efw49qHFbqD4Ydah2OqxBw7PPsh-DZIy5CFDTQACb1I");
+
+    return config;
+  }
 
   private Token createToken() {
     Token token = new Token();
-    token.setAccess_token("ao2eYwuXA42a9KsmE3H6c4ruNhrML3vLb31AZLbbNbTZmh6ONAv2WZPQmiQMR-0xqYQIDzuD0dvdEyUSQkcdXPWq4ss1SQbgSLlvcLtJlBI4Ds31sdeTcLwvdb7vOsb_4wxIp96sALkL2DMm6B056QbAGUSpSgQC9g1T9Ua-Ahk3UaoMMw64KUmrBfNQUzllNn5D708X9Ys1Zt6kPLi47A");
+    token.setAccess_token("F4N-FTGLX0zPhtDg4sIV59PPrBL_yStypnGm05qZhxZXehwMXRi_ADhuK85NPEmLE-WTnamOV-EVaZ288E4GqA40oJ708TVyoeCtFs71X92UnQqAwBo9hsBKgf-k-h4YilJknRqDI_s-s_f12APYD6INLD2bfTNvU_0vK4jpsQgr-NtV_3p6cubSuUpooyWyYK9i_ml7ZP6gZFBOzYjeyg");
+    token.setExpires_in(7200);
+    token.setCreateTime(DateUtil.getCurDateTime());
     return token;
   }
 
+  @Test
+  void test_uploadMedia() {
+    when(weixinDao.getWeixinEntConfig(anyInt(), anyInt())).thenReturn(createConfig());
+    when(weixinDao.retrieveWeixinToken(anyInt(), anyInt(), anyInt())).thenReturn(createToken());
+
+//    InputStream is = this.getClass().getResourceAsStream("tms-2.png");
+//    System.out.println(this.getClass().getResource("/resources"));
+//    String filePath = this.getClass().getClassLoader().getResource("tms-2.png").getFile();
+//    System.out.println(filePath);
+    File file = new File("../data/tms-2.png");
+    try {
+      System.out.println(file.getCanonicalPath());
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+
+    try {
+      service.uploadMedia(1, "file", file.getCanonicalPath(), null);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  @Test
+  void test_sendFileMsg() throws IOException {
+    when(weixinDao.getWeixinEntConfig(anyInt(), anyInt())).thenReturn(createConfig());
+    when(weixinDao.retrieveWeixinToken(anyInt(), anyInt(), anyInt())).thenReturn(createToken());
+
+    File file = new File("../data/tms-2.png");
+//    try {
+//      System.out.println(file.getCanonicalPath());
+//    } catch (IOException e) {
+//      e.printStackTrace();
+//    }
+
+    UploadMediaResponse rs = service.uploadMedia(1, "file", file.getCanonicalPath(), "测试中文图片.png");
+
+    final String mediaId = rs.getMediaId();
+
+
+    service.sendFileMsg(1, mediaId, "william", null, null);
+
+  }
+
+  @Disabled
   @Test
   public void test_getExternalContactFollowUsers() {
     Token token = createToken();
@@ -70,6 +127,7 @@ class WorkWeixinServiceTest {
     assertTrue(response.getUsers().length > 0);
   }
 
+  @Disabled
   @Test
   public void test_getExternalContactList() {
     Token token = createToken();
@@ -81,8 +139,9 @@ class WorkWeixinServiceTest {
     assertTrue(response.getExternalUserIds().length > 0);
   }
 
+  @Disabled
   @Test
-  public void test_getExternalContactDetail() {
+  void test_getExternalContactDetail() {
     Token token = createToken();
 
     ExternalContactDetailResponse response = service.getExternalContactDetail(token.getAccess_token(), "wmbTm9DwAAoZ2CaasIOmrWf7cLhbx7Iw");

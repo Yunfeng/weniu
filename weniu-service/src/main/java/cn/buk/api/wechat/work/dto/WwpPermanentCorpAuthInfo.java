@@ -1,5 +1,7 @@
 package cn.buk.api.wechat.work.dto;
 
+import cn.buk.api.wechat.dto.BaseResponse;
+
 /**
  * wwp - work weixin provider 企业微信服务商
  * 获取企业永久授权码

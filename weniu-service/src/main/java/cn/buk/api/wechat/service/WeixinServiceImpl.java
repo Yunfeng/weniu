@@ -411,7 +411,7 @@ public class WeixinServiceImpl implements WeixinService {
         return JSON.parseObject(jsonStr, BaseResponse.class);
     }
 
-    public synchronized Token getToken(final int enterpriseId) {
+    public Token getToken(final int enterpriseId) {
         Token token = weixinDao.retrieveWeixinToken(enterpriseId, Token.WEIXIN_SERVICE_TOKEN, 0);
 
         if (token == null || DateUtil.getPastSeconds(token.getCreateTime()) >= token.getExpires_in()) {
@@ -419,8 +419,8 @@ public class WeixinServiceImpl implements WeixinService {
         }
 
         return token;
-
     }
+
 
     @Override
     public List<WeixinGroup> getGroupList(final int enterpriseId) {
@@ -450,7 +450,17 @@ public class WeixinServiceImpl implements WeixinService {
     /**
      * 重新获取weixin的access token
      */
-    private Token refreshWeixinToken(final int enterpriseId) {
+    private synchronized Token refreshWeixinToken(final int enterpriseId) {
+        Token token = weixinDao.retrieveWeixinToken(enterpriseId, Token.WEIXIN_SERVICE_TOKEN, 0);
+        if (token == null || token.getCreateTime() == null) {
+            return null;
+        }
+
+        if (DateUtil.getPastSeconds(token.getCreateTime()) < token.getExpires_in()) {
+            //已经更新过了
+            return token;
+        }
+
         final String url = "https://api.weixin.qq.com/cgi-bin/token?";
 
         WeixinServiceConfig config = getWeixinServiceConfig(enterpriseId);
@@ -462,19 +472,24 @@ public class WeixinServiceImpl implements WeixinService {
         params.add(new BasicNameValuePair("appid", appId));
         params.add(new BasicNameValuePair("secret", appSecret));
 
-        String jsonStr = HttpUtil.getUrl(url, params);
+        final String jsonStr = HttpUtil.getUrl(url, params);
+        logger.info(jsonStr);
 
         //判断返回结果
         JSONObject param = (JSONObject) JSON.parse(jsonStr);
+        if (param.containsKey("access_token")) {
+            Token token1 = new Token();
+            token1.setAccess_token(param.getString("access_token"));
+            token1.setExpires_in(param.getInteger("expires_in"));
+            token1.setEnterpriseId(enterpriseId);
 
-        Token token = new Token();
-        token.setAccess_token((String) param.get("access_token"));
-        token.setExpires_in((Integer) param.get("expires_in"));
-        token.setEnterpriseId(enterpriseId);
+            weixinDao.createWeixinToken(token1);
 
-        weixinDao.createWeixinToken(token);
-
-        return token;
+            return token1;
+        } else {
+            //出错
+            throw new RuntimeException(param.getIntValue("errcode") + ", " + param.getString("errmsg"));
+        }
     }
 
     /**
@@ -821,7 +836,7 @@ public class WeixinServiceImpl implements WeixinService {
         String jsonStr = HttpUtil.getUrl(url, params);
 
         //判断返回结果
-        JSONObject jsonResult = JSONObject.parseObject(jsonStr);
+        JSONObject jsonResult = JSON.parseObject(jsonStr);
         int total = (Integer) jsonResult.get("total");
         int count = (Integer) jsonResult.get("count");
         JSONObject dataObject = (JSONObject)jsonResult.get("data");
@@ -1070,6 +1085,26 @@ public class WeixinServiceImpl implements WeixinService {
         }
     }
 
+    @Override
+    public Long2ShortUrlDto convertLong2ShortUlr(final int enterpriseId, final String longUrl) {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("action", "long2short");
+        jsonObject.put("long_url", longUrl);
+
+        String jsonBody = jsonObject.toJSONString();
+        logger.debug(jsonBody);
+
+        Token token = getToken(enterpriseId);
+        if (token == null) {
+            return null;
+        }
+        String url = "https://api.weixin.qq.com/cgi-bin/shorturl?access_token=" + token.getAccess_token() ;
+
+        String jsonStr = HttpUtil.postUrl(url, jsonBody);
+
+        return JSON.parseObject(jsonStr, Long2ShortUrlDto.class);
+    }
+
     /**
      * 发送客户消息给用户
      */
@@ -1156,7 +1191,7 @@ public class WeixinServiceImpl implements WeixinService {
     public JsonResult apiUpdateGroup(final int enterpriseId, int groupId, String groupName) {
         JsonResult resultStatus = new JsonResult();
         //TODO
-        String url = null; //PropertiesUtil.getProperty(AppConfig.API_WEIXIN_UPDATE_GROUP);
+        String url = null;
 
         Token token = getToken(enterpriseId);
         url = "access_token=" + token.getAccess_token();
@@ -1174,7 +1209,7 @@ public class WeixinServiceImpl implements WeixinService {
 
 
         //判断返回结果
-        JSONObject jsonResult = JSONObject.parseObject(jsonStr);
+        JSONObject jsonResult = JSON.parseObject(jsonStr);
         int errcode = (Integer)jsonResult.get("errcode");
         if (errcode != 0) {
             resultStatus.setErrcode(errcode);
@@ -1217,7 +1252,7 @@ public class WeixinServiceImpl implements WeixinService {
 
 
         //判断返回结果
-        JSONObject jsonResult = JSONObject.parseObject(jsonStr);
+        JSONObject jsonResult = JSON.parseObject(jsonStr);
         int total = (Integer) jsonResult.get("total");
         int count = (Integer) jsonResult.get("count");
         JSONObject dataObject = (JSONObject)jsonResult.get("data");
@@ -1255,7 +1290,7 @@ public class WeixinServiceImpl implements WeixinService {
 
 
         //判断返回结果
-        JSONObject jsonResult = JSONObject.parseObject(jsonStr);
+        JSONObject jsonResult = JSON.parseObject(jsonStr);
         if (jsonResult.get("errcode") != null) {
             jsonStr = "error: " + jsonResult.get("errmsg");
             return jsonStr;
@@ -1289,7 +1324,7 @@ public class WeixinServiceImpl implements WeixinService {
 
 
         //判断返回结果
-        JSONObject jsonResult = JSONObject.parseObject(jsonStr);
+        JSONObject jsonResult = JSON.parseObject(jsonStr);
         JSONArray array = jsonResult.getJSONArray("groups");
         int saveCount=0;
 
@@ -1398,7 +1433,7 @@ public class WeixinServiceImpl implements WeixinService {
 
 
         //判断返回结果
-        JSONObject jsonResult = JSONObject.parseObject(jsonStr);
+        JSONObject jsonResult = JSON.parseObject(jsonStr);
         if (jsonResult.get("errcode") != null) {
             resultStatus.setErrcode((Integer)jsonResult.get("errcode"));
             resultStatus.setErrmsg((String)jsonResult.get("errmsg"));
@@ -1492,7 +1527,7 @@ public class WeixinServiceImpl implements WeixinService {
         String url = "https://api.weixin.qq.com/cgi-bin/menu/create?access_token=" + token.getAccess_token() ;
 
         String jsonStr = FileUtil.file2String(jsonFilename, "utf-8");
-        JSONObject jsonObject= JSONObject.parseObject(jsonStr);
+        JSONObject jsonObject= JSON.parseObject(jsonStr);
 
         String jsonBody = jsonObject.toString();
 
@@ -1531,7 +1566,7 @@ public class WeixinServiceImpl implements WeixinService {
             String jsonStr = HttpUtil.getUrl(url, params);
 
             //判断返回结果
-            JSONObject param = JSONObject.parseObject(jsonStr);
+            JSONObject param = JSON.parseObject(jsonStr);
 
             token = new Token();
             token.setAccess_token((String) param.get("access_token"));
@@ -1559,7 +1594,7 @@ public class WeixinServiceImpl implements WeixinService {
 
         jsonStr = HttpUtil.getUrl(url, params);
         //判断返回结果
-        JSONObject jsonResult = JSONObject.parseObject(jsonStr);
+        JSONObject jsonResult = JSON.parseObject(jsonStr);
 
         if (jsonResult.get("openid") != null) return 0;
 

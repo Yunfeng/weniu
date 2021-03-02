@@ -1,8 +1,12 @@
 package cn.buk.api.wechat.work.service;
 
+import cn.buk.api.wechat.dto.BaseResponse;
 import cn.buk.api.wechat.dto.JsSdkParam;
 import cn.buk.api.wechat.entity.Token;
 import cn.buk.api.wechat.work.dto.*;
+import cn.buk.api.wechat.work.message.TaskCardMessage;
+
+import javax.validation.constraints.NotNull;
 
 /**
  * @author yfdai
@@ -46,6 +50,16 @@ public interface WorkWeixinService {
    * 获取jsapi_ticket
    */
   JsSdkParam getJsSdkConfig(int enterpriseId, String jsapi_url);
+
+  /**
+   * 上传临时素材
+   * @param enterpriseId 企业id
+   * @param mediaType 媒体文件类型
+   * @param filename 媒体文件名
+   * @param displayName 上传后的文件名
+   * @return 接口返回内容
+   */
+  UploadMediaResponse uploadMedia(int enterpriseId, String mediaType, String filename, String displayName);
 
   /**
    * 获取临时素材 语音和图片素材返回下载到本地后的地址；视频文件返回URL
@@ -124,6 +138,19 @@ public interface WorkWeixinService {
    */
   ExternalContactDetailResponse getExternalContactDetail(final String accessToken, final String externalUserId);
 
+  /**
+   * 发送应用消息：文本消息
+   */
   void sendTextMsg(int enterpriseId, String msg, String weixinIds, String deptIds, String tagIds);
+
+  /**
+   * 发送文件消息
+   */
+  void sendFileMsg(int enterpriseId, String mediaId, String weixinIds, String deptIds, String tagIds);
+
+  /**
+   * 发送应用消息：任务卡片消息
+   */
+  void sendTaskCardMsg(int enterpriseId, @NotNull TaskCardMessage msg);
 
 }

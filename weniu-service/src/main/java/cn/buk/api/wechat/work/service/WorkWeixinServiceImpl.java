@@ -1,7 +1,10 @@
 package cn.buk.api.wechat.work.service;
 
+import cn.buk.api.wechat.dto.BaseResponse;
 import cn.buk.api.wechat.dto.JsSdkParam;
-import cn.buk.api.wechat.dto.TextMessage;
+import cn.buk.api.wechat.work.message.FileMessage;
+import cn.buk.api.wechat.work.message.TaskCardMessage;
+import cn.buk.api.wechat.work.message.TextMessage;
 import cn.buk.api.wechat.entity.*;
 import cn.buk.api.wechat.util.HttpUtil;
 import cn.buk.api.wechat.util.SignUtil;
@@ -12,9 +15,15 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.qq.weixin.mp.aes.WXBizMsgCrypt;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.log4j.Logger;
 
+import javax.validation.constraints.NotNull;
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -121,7 +130,7 @@ public class WorkWeixinServiceImpl extends BaseService implements WorkWeixinServ
 
     public UserInfoResponse getUserInfo(int enterpriseId, String code) {
         Token token = getToken(enterpriseId, false);
-        String url = "https://qyapi.weixin.qq.com/cgi-bin/user/getuserinfo?"; //?=" + token.getAccess_token() + "&code=" + code;
+        String url = "https://qyapi.weixin.qq.com/cgi-bin/user/getuserinfo?";
 
         List<NameValuePair> params = new ArrayList<>();
         params.add(new BasicNameValuePair("access_token", token.getAccess_token()));
@@ -174,7 +183,77 @@ public class WorkWeixinServiceImpl extends BaseService implements WorkWeixinServ
         return jsapiParam;
     }
 
-    /**
+  @Override
+  public UploadMediaResponse uploadMedia(int enterpriseId, String mediaType, String filename, String displayName) {
+    final String API_URL = "https://qyapi.weixin.qq.com/cgi-bin/media/upload?";
+
+    Token token = getToken(enterpriseId);
+    String url = API_URL + "access_token=" + token.getAccess_token()+"&type=" + mediaType;
+
+    String result = postFile(url, filename, displayName);
+    logger.info(result);
+
+    return JSON.parseObject(result, UploadMediaResponse.class);
+  }
+
+  public static String postFile(String url, String filePath, String displayName) {
+    File file = new File(filePath);
+    if (!file.exists())
+      return null;
+
+    String result = null;
+
+    try {
+      URL url1 = new URL(url);
+      HttpURLConnection conn = (HttpURLConnection) url1.openConnection();
+      conn.setConnectTimeout(5000);
+      conn.setReadTimeout(30000);
+      conn.setDoOutput(true);
+      conn.setDoInput(true);
+      conn.setUseCaches(false);
+      conn.setRequestMethod("POST");
+      conn.setRequestProperty("Connection", "Keep-Alive");
+      conn.setRequestProperty("Cache-Control", "no-cache");
+      String boundary = "-----------------------------" + System.currentTimeMillis();
+      conn.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
+
+      OutputStream output = conn.getOutputStream();
+      output.write(("--" + boundary + "\r\n").getBytes());
+
+      String uploadedFilename = displayName == null ? file.getName(): displayName;
+      String contentDisposition = String.format("Content-Disposition: form-data; name=\"media\"; filename=\"%s\"\r\n", uploadedFilename);
+      output.write(contentDisposition.getBytes(StandardCharsets.UTF_8));
+
+      output.write("Content-Type: image/jpeg \r\n\r\n".getBytes());
+
+      byte[] data = new byte[1024];
+      int len = 0;
+      FileInputStream input = new FileInputStream(file);
+      while ((len = input.read(data)) > -1) {
+        output.write(data, 0, len);
+      }
+      output.write(("\r\n--" + boundary + "\r\n\r\n").getBytes());
+      output.flush();
+      output.close();
+      input.close();
+      InputStream resp = conn.getInputStream();
+      StringBuffer sb = new StringBuffer();
+      while ((len = resp.read(data)) > -1)
+        sb.append(new String(data, 0, len, StandardCharsets.UTF_8));
+      resp.close();
+      result = sb.toString();
+      //System.out.println(result);
+    } catch (ClientProtocolException e) {
+      logger.error("postFile，不支持http协议", e);
+    } catch (IOException e) {
+      logger.error("postFile数据传输失败", e);
+    }
+//    System.out.println(result);
+    return result;
+  }
+
+
+  /**
      * 获取临时素材
      * @param mediaType
      * @param mediaId
@@ -443,14 +522,7 @@ public class WorkWeixinServiceImpl extends BaseService implements WorkWeixinServ
         return this.getToken(enterpriseId, forced);
     }
 
-    /**
-     * @Override
-     * @param enterpriseId
-     * @param msg
-     * @param weixinIds
-     * @param deptIds
-     * @param tagIds
-     */
+    @Override
     public void sendTextMsg(int enterpriseId, String msg, String weixinIds, String deptIds, String tagIds) {
         if (weixinIds != null && weixinIds.equalsIgnoreCase("NONE")) return;
 
@@ -487,7 +559,7 @@ public class WorkWeixinServiceImpl extends BaseService implements WorkWeixinServ
         logger.info("token: " + token.getId() + ", " + token.getEnterpriseId() + ", " + token.getMsgType() + ", " + token.getAccess_token());
         logger.info(jsonStr);
 
-        JsonResult jsonResult = doSendTextMsg(jsonStr, token);
+        JsonResult jsonResult = doSendAppMsg(jsonStr, token);
 
         if (jsonResult.getErrcode() == 0) {
             //发送成功
@@ -497,19 +569,113 @@ public class WorkWeixinServiceImpl extends BaseService implements WorkWeixinServ
             //try again
             System.out.println("try again ............................................................................");
             token = getToken(enterpriseId, WeixinEntConfig.WORK_WX_DEFAULT, true);
-            doSendTextMsg(jsonStr, token);
+            doSendAppMsg(jsonStr, token);
+        } else {
+            logger.error(jsonResult.getErrcode() + " - " + jsonResult.getErrmsg());
+        }
+    }
+
+  @Override
+  public void sendFileMsg(int enterpriseId, String mediaId, String weixinIds, String deptIds, String tagIds) {
+    if (weixinIds != null && weixinIds.equalsIgnoreCase("NONE")) return;
+
+    WeixinEntConfig cfg = weixinDao.getWeixinEntConfig(enterpriseId, WeixinEntConfig.WORK_WX_DEFAULT);
+    if (cfg == null) {
+      logger.warn("No weixin config.");
+      return;
+    }
+
+    logger.info(cfg.getEnterpriseId() + ", " + enterpriseId + ": " + cfg.getId() + ", " + cfg.getCorpId() + ", " + cfg.getAgentId() + ", " + cfg.getSecret());
+
+    FileMessage fileMessage = new FileMessage();
+    fileMessage.setAgentid(cfg.getAgentId());
+
+    if (weixinIds != null && weixinIds.trim().length() > 0) {
+      fileMessage.setTouser( weixinIds.replaceAll(";", "|"));
+    }
+
+    if (deptIds != null && deptIds.trim().length() > 0) {
+      fileMessage.setToparty(deptIds.replaceAll(";", "|"));
+    }
+
+    if (tagIds != null && tagIds.trim().length() > 0) {
+      fileMessage.setTotag(tagIds.replaceAll(";", "|"));
+    }
+
+
+    fileMessage.getMediaInfo().setMediaId(mediaId);
+
+    String jsonStr = com.alibaba.fastjson.JSON.toJSONString(fileMessage);
+
+
+    Token token = getToken(enterpriseId, WeixinEntConfig.WORK_WX_DEFAULT, false);
+    logger.info("token: " + token.getId() + ", " + token.getEnterpriseId() + ", " + token.getMsgType() + ", " + token.getAccess_token());
+    logger.info(jsonStr);
+
+    JsonResult jsonResult = doSendAppMsg(jsonStr, token);
+
+    if (jsonResult.getErrcode() == 0) {
+      //发送成功
+      //return jsonResult;
+    } else if (jsonResult.getErrcode() == 40014) {
+      //invalid access_token
+      //try again
+      System.out.println("try again ............................................................................");
+      token = getToken(enterpriseId, WeixinEntConfig.WORK_WX_DEFAULT, true);
+      doSendAppMsg(jsonStr, token);
+    } else {
+      logger.error(jsonResult.getErrcode() + " - " + jsonResult.getErrmsg());
+    }
+  }
+
+  @Override
+    public void sendTaskCardMsg(final int enterpriseId, @NotNull TaskCardMessage msg) {
+
+        WeixinEntConfig cfg = weixinDao.getWeixinEntConfig(enterpriseId, WeixinEntConfig.WORK_WX_DEFAULT);
+        if (cfg == null) {
+            logger.warn("No work weixin config.");
+            return;
+        }
+
+        msg.setAgentid(cfg.getAgentId());
+
+        String jsonStr = JSON.toJSONString(msg);
+
+
+        Token token = getToken(enterpriseId, WeixinEntConfig.WORK_WX_DEFAULT, false);
+        logger.info("token: " + token.getId() + ", " + token.getEnterpriseId() + ", " + token.getMsgType() + ", " + token.getAccess_token());
+        logger.info(jsonStr);
+
+        JsonResult jsonResult = doSendAppMsg(jsonStr, token);
+
+        if (jsonResult.getErrcode() == 0) {
+            //发送成功
+            //return jsonResult;
+        } else if (jsonResult.getErrcode() == 40014) {
+            //invalid access_token
+            //try again
+            System.out.println("try again ............................................................................");
+            token = getToken(enterpriseId, WeixinEntConfig.WORK_WX_DEFAULT, true);
+            doSendAppMsg(jsonStr, token);
         } else {
             logger.error(jsonResult.getErrcode() + " - " + jsonResult.getErrmsg());
         }
     }
 
 
-    private JsonResult doSendTextMsg(final String jsonStr, final Token token) {
+    /**
+     * 发送企业微信应用消息
+     * @param jsonStr
+     * @param token
+     * @return
+     */
+    private JsonResult doSendAppMsg(final String jsonStr, final Token token) {
         String url = "https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token=" + token.getAccess_token() ;
 
         String returnStr = HttpUtil.postUrl(url, jsonStr);
 
-        System.out.println("doSendTextMsg: " + returnStr);
+        logger.info("doSendAppMsg: " + returnStr);
+        System.out.println(returnStr);
 
         return JSON.parseObject(returnStr, JsonResult.class);
     }

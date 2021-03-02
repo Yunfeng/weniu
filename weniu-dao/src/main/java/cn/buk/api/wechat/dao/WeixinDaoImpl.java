@@ -79,7 +79,7 @@ public class WeixinDaoImpl extends AbstractDao implements WeixinDao {
                     .setParameter("msgType", msgType)
                     .setMaxResults(1)
                     .getResultList();
-            if (tokens == null || tokens.size() == 0)
+            if (tokens == null || tokens.isEmpty())
                 return null;
             else
                 return tokens.get(0);
@@ -287,9 +287,6 @@ public class WeixinDaoImpl extends AbstractDao implements WeixinDao {
 
     /**
      * 本地查找微信永久素材
-     * @param enterpriseId
-     * @param sc
-     * @return
      */
     public List<WeixinMaterial> searchMaterials(int enterpriseId, CommonSearchCriteria sc) {
         List<WeixinMaterial> results = null;
@@ -704,8 +701,6 @@ public class WeixinDaoImpl extends AbstractDao implements WeixinDao {
 
     /**
      * 保存授权企业的信息
-     * @param corpInfo
-     * @return
      */
     public int saveWwpAuthCorpInfo(WwProviderAuthCorpInfo corpInfo) {
         int retCode = 0;
@@ -851,8 +846,6 @@ public class WeixinDaoImpl extends AbstractDao implements WeixinDao {
 
     /**
      * 获取微信服务号的API配置
-     * @param enterpriseId
-     * @return
      */
     public WeixinServiceConfig getWeixinServiceConfig(int enterpriseId) {
         EntityManager em = createEntityManager();
