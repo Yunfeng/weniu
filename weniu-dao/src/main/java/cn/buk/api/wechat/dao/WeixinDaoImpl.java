@@ -6,6 +6,7 @@ import cn.buk.common.sc.Page;
 import cn.buk.util.DateUtil;
 import org.springframework.stereotype.Component;
 
+import javax.persistence.Column;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -857,6 +858,37 @@ public class WeixinDaoImpl extends AbstractDao implements WeixinDao {
                     .setParameter("msgType", 0)
                     .getResultList();
             return list.size() == 0 ? null: list.get(0);
+        } finally {
+            em.close();
+        }
+    }
+
+    @Override
+    public int saveWeixinServiceConfig(WeixinServiceConfig config) {
+        EntityManager em = createEntityManager();
+
+        try {
+            List<WeixinServiceConfig> list = em.createQuery("select o from WeixinServiceConfig o " +
+                    "where o.enterpriseId = :enterpriseId and o.msgType = :msgType", WeixinServiceConfig.class)
+                    .setParameter("enterpriseId", config.getEnterpriseId())
+                    .setParameter("msgType", config.getMsgType())
+                    .getResultList();
+            if (list.isEmpty()) {
+                config.setId(0);
+                em.persist(config);
+                return config.getId();
+            } else {
+                WeixinServiceConfig old = list.get(0);
+                old.setAppId(config.getAppId());
+                old.setAppSecret(config.getAppSecret());
+                old.setToken(config.getToken());
+                old.setEncodingKey(config.getEncodingKey());
+
+                old.setLastUpdate(DateUtil.getCurDateTime());
+                em.merge(old);
+
+                return old.getId();
+            }
         } finally {
             em.close();
         }

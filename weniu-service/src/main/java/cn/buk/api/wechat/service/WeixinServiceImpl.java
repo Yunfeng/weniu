@@ -200,28 +200,21 @@ public class WeixinServiceImpl implements WeixinService {
         }
     }
 
-//    @Value("${Weixin_Id}")
-//    private int weixinId;
-//
-//    /**
-//     * 以下三个参数是微信接口需要用到的
-//     */
-//    @Value("${Weixin_AppId}")
-//    private String appId;
-//
-//    @Value("${Weixin_AppSecret}")
-//    private String appSecret;
-//
-//    @Value("${Weixin_Token}")
-//    private String weixinToken;
-
-
     @Autowired
     private WeixinDao weixinDao;
 
 
-    private WeixinServiceConfig getWeixinServiceConfig(int enterpriseId) {
+    @Override
+    public WeixinServiceConfig getWeixinServiceConfig(int enterpriseId) {
         return weixinDao.getWeixinServiceConfig(enterpriseId);
+    }
+
+    @Override
+    public JsonResult saveWeixinServiceConfig(int enterpriseId, WeixinServiceConfig config) {
+        config.setEnterpriseId(enterpriseId);
+        config.setMsgType(0);
+        int retCode = weixinDao.saveWeixinServiceConfig(config);
+        return JsonResult.createJsonResult(retCode);
     }
 
     private String getAppToken(int enterpriseId) {
@@ -234,6 +227,7 @@ public class WeixinServiceImpl implements WeixinService {
         return config == null ? null : config.getAppId();
     }
 
+    @Override
     public JsSdkParam getJsSdkConfig(int enterpriseId, String jsapi_url) {
         JsSdkParam jsapiParam = new JsSdkParam();
         jsapiParam.setAppId(getAppId(enterpriseId));
@@ -254,6 +248,7 @@ public class WeixinServiceImpl implements WeixinService {
     /**
      * @param weixinOauthCode code说明 ： code作为换取access_token的票据，每次用户授权带上的code将不一样，code只能使用一次，5分钟未被使用自动过期。
      */
+    @Override
     public WeixinOauthToken getOauthToken(final int enterpriseId, final String weixinOauthCode) {
 
         WeixinServiceConfig config = getWeixinServiceConfig(enterpriseId);
@@ -288,6 +283,7 @@ public class WeixinServiceImpl implements WeixinService {
     }
 
 
+    @Override
     public boolean verifyWeixinSource(int enterpriseId, String signature, String timestamp, String nonce) {
         try {
             ArrayList<String> al = new ArrayList<>();
@@ -336,6 +332,7 @@ public class WeixinServiceImpl implements WeixinService {
      * 从数据库中读取微信自定义菜单设置，
      * 创建微信自定义菜单
      */
+    @Override
     public BaseResponse createCustomMenu(final int enterpriseId) {
         WeixinMenu wm = new WeixinMenu();
 
@@ -411,6 +408,7 @@ public class WeixinServiceImpl implements WeixinService {
         return JSON.parseObject(jsonStr, BaseResponse.class);
     }
 
+    @Override
     public Token getToken(final int enterpriseId) {
         Token token = weixinDao.retrieveWeixinToken(enterpriseId, Token.WEIXIN_SERVICE_TOKEN, 0);
 
@@ -824,6 +822,7 @@ public class WeixinServiceImpl implements WeixinService {
     /**
      * 同步微信关注用户的OpenId到本地
      */
+    @Override
     public int syncUserList(final int enterpriseId) {
         final String url = "https://api.weixin.qq.com/cgi-bin/user/get?";
 
@@ -883,6 +882,7 @@ public class WeixinServiceImpl implements WeixinService {
     /**
      * 同步消息模板到本地
      */
+    @Override
     public List<WeixinTemplate> syncTemplates(final int enterpriseId) {
         List<WeixinTemplate> results = new ArrayList<>();
 
@@ -917,6 +917,7 @@ public class WeixinServiceImpl implements WeixinService {
     /**
      * 发送模板消息
      */
+    @Override
     public String sendTemplateMsg(final int enterpriseId, WxTemplateSend wxTplRq) {
         String jsonBody = JSON.toJSONString(wxTplRq);
         logger.debug(jsonBody);
@@ -943,6 +944,7 @@ public class WeixinServiceImpl implements WeixinService {
     /**
      * 处理微信推送过来的 用户消息和开发者需要的事件推送
      */
+    @Override
     public void processWeixinMessage(final int enterpriseId, HttpServletRequest request, HttpServletResponse response) {
 
         final String requestXml = this.readInputXml(request);
@@ -1068,6 +1070,7 @@ public class WeixinServiceImpl implements WeixinService {
      * state: wxs_5
      * wxs 标识weixin_service_no，微信服务号，后面的数字5标识该企业的enterpriseId
      */
+    @Override
     public String buildUrlInWeixin(final int enterpriseId, String url0) {
         String appId = getAppId(enterpriseId);
         try {

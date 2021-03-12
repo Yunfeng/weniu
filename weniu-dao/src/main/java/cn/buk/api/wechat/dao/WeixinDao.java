@@ -102,4 +102,11 @@ public interface WeixinDao {
      * 获取微信服务号的配置信息
      */
     WeixinServiceConfig getWeixinServiceConfig(int enterpriseId);
+
+    /**
+     * 保存微信服务号开发参数
+     * @param config
+     * @return
+     */
+    int saveWeixinServiceConfig(WeixinServiceConfig config);
 }

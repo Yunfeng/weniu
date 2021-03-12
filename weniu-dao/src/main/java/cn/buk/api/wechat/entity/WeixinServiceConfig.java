@@ -4,12 +4,15 @@ import javax.persistence.*;
 import java.util.Date;
 
 /**
- * Created by yfdai on 2019-04-07.
+ *
+ * @author yfdai
+ * @date 2019-04-07
  *
  * 微信服务号应用的API参数
  */
 @Entity
-@Table(name = "weixin_service_config", uniqueConstraints = @UniqueConstraint(name = "uk_weixin_service_config", columnNames = {"enterprise_id", "msg_type"}))
+@Table(name = "weixin_service_config", uniqueConstraints = @UniqueConstraint(
+        name = "uk_weixin_service_config", columnNames = {"enterprise_id", "msg_type"}))
 public class WeixinServiceConfig {
 
 
@@ -27,14 +30,32 @@ public class WeixinServiceConfig {
     @Column(name = "msg_type")
     private int msgType;
 
+    /**
+     * 开发者ID(AppID)
+     */
     @Column(name = "app_id", nullable = false)
     private String appId;
 
+    /**
+     * 开发者密码(AppSecret)
+     */
     @Column(name = "app_secret", nullable = false)
     private String appSecret;
 
+    /**
+     * 令牌(Token)
+     * 3-32字符
+     */
     @Column(nullable = false)
     private String token;
+
+    /**
+     * 消息加解密密钥
+     * EncodingAESKey
+     *消息加密密钥由43位字符组成，可随机修改，字符范围为A-Z，a-z，0-9。
+     */
+    @Column(name = "encoding_key")
+    private String encodingKey;
 
 
     @Temporal(TemporalType.TIMESTAMP)
@@ -107,5 +128,13 @@ public class WeixinServiceConfig {
 
     public void setAppSecret(String appSecret) {
         this.appSecret = appSecret;
+    }
+
+    public String getEncodingKey() {
+        return encodingKey;
+    }
+
+    public void setEncodingKey(String encodingKey) {
+        this.encodingKey = encodingKey;
     }
 }

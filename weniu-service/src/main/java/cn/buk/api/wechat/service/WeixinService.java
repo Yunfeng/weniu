@@ -1,6 +1,5 @@
 package cn.buk.api.wechat.service;
 
-
 import cn.buk.api.wechat.dto.*;
 import cn.buk.api.wechat.entity.*;
 import cn.buk.common.sc.CommonSearchCriteria;
@@ -12,9 +11,26 @@ import java.util.List;
 
 /**
  * 微信公众号服务类
- * Created by yfdai on 2017/2/6.
+ *
+ * @author yfdai
+ * @date 2017/2/6
  */
 public interface WeixinService {
+
+  /**
+   * 查找企业的微信公众号（服务号）的配置参数
+   * @param enterpriseId
+   * @return
+   */
+  WeixinServiceConfig getWeixinServiceConfig(int enterpriseId);
+
+  /**
+   * 保存微信公众号的配置参数
+   * @param enterpriseId
+   * @param config
+   * @return
+   */
+  JsonResult saveWeixinServiceConfig(int enterpriseId, WeixinServiceConfig config);
 
   /**
    * 验证消息来源是否微信发送的
@@ -272,7 +288,6 @@ public interface WeixinService {
   WeixinGroup getGroupInfo(final int enterpriseId, int groupId);
 
 
-
   /**
    * 生成 微信授权的 url
    *
@@ -283,8 +298,9 @@ public interface WeixinService {
 
   /**
    * 将长连接转化为短链接
+   *
    * @param enterpriseId 企业id
-   * @param longUrl 长链接内容
+   * @param longUrl      长链接内容
    * @return
    */
   Long2ShortUrlDto convertLong2ShortUlr(final int enterpriseId, final String longUrl);
