@@ -210,11 +210,10 @@ public class WeixinServiceImpl implements WeixinService {
     }
 
     @Override
-    public JsonResult saveWeixinServiceConfig(int enterpriseId, WeixinServiceConfig config) {
+    public int saveWeixinServiceConfig(int enterpriseId, WeixinServiceConfig config) {
         config.setEnterpriseId(enterpriseId);
         config.setMsgType(0);
-        int retCode = weixinDao.saveWeixinServiceConfig(config);
-        return JsonResult.createJsonResult(retCode);
+        return weixinDao.saveWeixinServiceConfig(config);
     }
 
     private String getAppToken(int enterpriseId) {
@@ -308,12 +307,10 @@ public class WeixinServiceImpl implements WeixinService {
 
     /**
      * 获取微信自定义菜单
-     */
-    /**
-     *
      * @param enterpriseId 需要查询的enterpriseId; 否则使用默认的
      * @return
      */
+    @Override
     public String getCustomMenu(final int enterpriseId) {
 
         Token token = getToken(enterpriseId);
@@ -333,7 +330,7 @@ public class WeixinServiceImpl implements WeixinService {
      * 创建微信自定义菜单
      */
     @Override
-    public BaseResponse createCustomMenu(final int enterpriseId) {
+    public BaseResponse uploadCustomMenu(final int enterpriseId) {
         WeixinMenu wm = new WeixinMenu();
 
         List<WeixinCustomMenu> menus = weixinDao.searchCustomMenus(enterpriseId);
@@ -398,6 +395,12 @@ public class WeixinServiceImpl implements WeixinService {
         logger.info(jsonBody);
 
         Token token = getToken(enterpriseId);
+        if (token == null) {
+            BaseResponse response = new BaseResponse();
+            response.setErrcode(-1);
+            response.setErrmsg("未获取到有效token");
+            return response;
+        }
         url = "https://api.weixin.qq.com/cgi-bin/menu/create?access_token=" + token.getAccess_token() ;
 
         List<NameValuePair> params = new ArrayList<>();
@@ -450,11 +453,7 @@ public class WeixinServiceImpl implements WeixinService {
      */
     private synchronized Token refreshWeixinToken(final int enterpriseId) {
         Token token = weixinDao.retrieveWeixinToken(enterpriseId, Token.WEIXIN_SERVICE_TOKEN, 0);
-        if (token == null || token.getCreateTime() == null) {
-            return null;
-        }
-
-        if (DateUtil.getPastSeconds(token.getCreateTime()) < token.getExpires_in()) {
+        if (token != null && DateUtil.getPastSeconds(token.getCreateTime()) < token.getExpires_in()) {
             //已经更新过了
             return token;
         }
@@ -1088,26 +1087,6 @@ public class WeixinServiceImpl implements WeixinService {
         }
     }
 
-    @Override
-    public Long2ShortUrlDto convertLong2ShortUlr(final int enterpriseId, final String longUrl) {
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("action", "long2short");
-        jsonObject.put("long_url", longUrl);
-
-        String jsonBody = jsonObject.toJSONString();
-        logger.debug(jsonBody);
-
-        Token token = getToken(enterpriseId);
-        if (token == null) {
-            return null;
-        }
-        String url = "https://api.weixin.qq.com/cgi-bin/shorturl?access_token=" + token.getAccess_token() ;
-
-        String jsonStr = HttpUtil.postUrl(url, jsonBody);
-
-        return JSON.parseObject(jsonStr, Long2ShortUrlDto.class);
-    }
-
     /**
      * 发送客户消息给用户
      */
@@ -1159,6 +1138,7 @@ public class WeixinServiceImpl implements WeixinService {
         return result;
     }
 
+    @Override
     public List<WeixinCustomMenu> searchCustomMenus(final int enterpriseId) {
         return weixinDao.searchCustomMenus(enterpriseId);
     }
@@ -1168,12 +1148,13 @@ public class WeixinServiceImpl implements WeixinService {
         return weixinDao.deleteCustomMenu(enterpriseId, id);
     }
 
-    public int createCustomMenu(final int enterpriseId, String name, String type, String url, String key, int level, int parentId) {
-        return this.createCustomMenu(enterpriseId, name, type, url, key, level, parentId, 1);
+    @Override
+    public int createCustomMenu(final int enterpriseId, String name, int orderNum, String type, String url, String key, int level, int parentId) {
+        return this.createCustomMenu(enterpriseId, name, orderNum, type, url, key, level, parentId, 1);
     }
 
     @Override
-    public int createCustomMenu(int enterpriseId, String name, String type, String url, String key, int level, int parentId, int bindUrl) {
+    public int createCustomMenu(int enterpriseId, String name, int orderNum, String type, String url, String key, int level, int parentId, int bindUrl) {
         WeixinCustomMenu o = new WeixinCustomMenu();
         o.setEnterpriseId(enterpriseId);
         o.setName(name);
@@ -1183,14 +1164,17 @@ public class WeixinServiceImpl implements WeixinService {
         o.setLevel(level);
         o.setParentId(parentId);
         o.setBindUrl(bindUrl);
+        o.setOrderNum(orderNum);
 
         return weixinDao.createCustomMenu(o);
     }
 
+    @Override
     public List<WeixinUser> getUserList(final int enterpriseId) {
         return weixinDao.listWeixinUser(enterpriseId);
     }
 
+    @Override
     public JsonResult apiUpdateGroup(final int enterpriseId, int groupId, String groupName) {
         JsonResult resultStatus = new JsonResult();
         //TODO
@@ -1240,6 +1224,7 @@ public class WeixinServiceImpl implements WeixinService {
         return resultStatus;
     }
 
+    @Override
     public String apiGetUserList(final int enterpriseId) {
         //TODO
         String url = null;//PropertiesUtil.getProperty(AppConfig.API_WEIXIN_LIST_USER);
@@ -1276,6 +1261,7 @@ public class WeixinServiceImpl implements WeixinService {
         return jsonStr;
     }
 
+    @Override
     public String apiGetGroupId(final int enterpriseId, String weixinOpenId) {
         //TODO
         String url = null;//PropertiesUtil.getProperty(AppConfig.API_WEIXIN_GET_GROUP_ID);
@@ -1313,6 +1299,7 @@ public class WeixinServiceImpl implements WeixinService {
         return jsonStr;
     }
 
+    @Override
     public String apiGetGroupList(final int enterpriseId) {
         //TODO
         String url = null; //PropertiesUtil.getProperty(AppConfig.API_WEIXIN_LIST_GROUP);
@@ -1354,6 +1341,7 @@ public class WeixinServiceImpl implements WeixinService {
         return jsonStr;
     }
 
+    @Override
     public String apiGetUserInfo(final int enterpriseId, int userId) {
         WeixinUser user = weixinDao.getWeixinUser(enterpriseId, userId);
 
@@ -1367,6 +1355,7 @@ public class WeixinServiceImpl implements WeixinService {
         return jsonStr;
     }
 
+    @Override
     public String apiGetUserInfo(final int enterpriseId) {
         List<WeixinUser> users = weixinDao.listWeixinUser(enterpriseId);
 
@@ -1383,6 +1372,7 @@ public class WeixinServiceImpl implements WeixinService {
         return jsonStr;
     }
 
+    @Override
     public String sendWeixinCustomMessage(final int enterpriseId, String toUser, String content) {
 //        http请求方式: POST
 //        https://api.weixin.qq.com/cgi-bin/message/custom/send?access_token=ACCESS_TOKEN
@@ -1417,6 +1407,7 @@ public class WeixinServiceImpl implements WeixinService {
         return HttpUtil.postUrl(url, jsonBody);
     }
 
+    @Override
     public JsonResult apiCreateGroup(final int enterpriseId, String groupName) {
         JsonResult resultStatus = new JsonResult();
         String url = null; //TODO PropertiesUtil.getProperty(AppConfig.API_WEIXIN_CREATE_GROUP);
@@ -1463,10 +1454,12 @@ public class WeixinServiceImpl implements WeixinService {
         return resultStatus;
     }
 
+    @Override
     public int createWeixinAccessTime(final int enterpriseId, String weixinOpenId) {
         return weixinDao.createWeixinAccessTime(weixinOpenId, enterpriseId);
     }
 
+    @Override
     public String createWeixinTemporaryQr(final int enterpriseId) {
 //        临时二维码请求说明
 //
@@ -1518,30 +1511,6 @@ public class WeixinServiceImpl implements WeixinService {
 
         return HttpUtil.getUrl(url, null);
     }
-
-    /**
-     *
-     * @param enterpriseId 企业id
-     * @param jsonFilename 保存自定义菜单信息的文件名
-     * @return
-     */
-    public BaseResponse createCustomMenu(final int enterpriseId, String jsonFilename) {
-        Token token = getToken(enterpriseId);
-        String url = "https://api.weixin.qq.com/cgi-bin/menu/create?access_token=" + token.getAccess_token() ;
-
-        String jsonStr = FileUtil.file2String(jsonFilename, "utf-8");
-        JSONObject jsonObject= JSON.parseObject(jsonStr);
-
-        String jsonBody = jsonObject.toString();
-
-        List<NameValuePair> params = new ArrayList<NameValuePair>();
-        params.add(new BasicNameValuePair("body", jsonBody));
-
-        jsonStr = HttpUtil.postUrl(url, jsonBody);
-        return JSON.parseObject(jsonStr, BaseResponse.class);
-    }
-
-
 
     public Token getToken(int enterpriseId, int msgType) {
         return getToken(enterpriseId, msgType,false);

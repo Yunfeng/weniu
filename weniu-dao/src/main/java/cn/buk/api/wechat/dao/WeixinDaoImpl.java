@@ -218,10 +218,10 @@ public class WeixinDaoImpl extends AbstractDao implements WeixinDao {
         EntityManager em = createEntityManager();
         try {
             return em.createQuery("select o from WeixinCustomMenu o " +
-                    "where o.enterpriseId = :enterpriseId order by o.level, o.parentId, o.id", WeixinCustomMenu.class)
+                    "where o.enterpriseId = :enterpriseId " +
+                    "order by o.level, o.parentId, o.orderNum, o.id", WeixinCustomMenu.class)
                     .setParameter("enterpriseId", ownerId)
                     .getResultList();
-
         } finally {
             em.close();
         }
@@ -868,6 +868,8 @@ public class WeixinDaoImpl extends AbstractDao implements WeixinDao {
         EntityManager em = createEntityManager();
 
         try {
+            em.getTransaction().begin();
+            int retCode = 0;
             List<WeixinServiceConfig> list = em.createQuery("select o from WeixinServiceConfig o " +
                     "where o.enterpriseId = :enterpriseId and o.msgType = :msgType", WeixinServiceConfig.class)
                     .setParameter("enterpriseId", config.getEnterpriseId())
@@ -876,7 +878,8 @@ public class WeixinDaoImpl extends AbstractDao implements WeixinDao {
             if (list.isEmpty()) {
                 config.setId(0);
                 em.persist(config);
-                return config.getId();
+
+                retCode = config.getId();
             } else {
                 WeixinServiceConfig old = list.get(0);
                 old.setAppId(config.getAppId());
@@ -887,8 +890,12 @@ public class WeixinDaoImpl extends AbstractDao implements WeixinDao {
                 old.setLastUpdate(DateUtil.getCurDateTime());
                 em.merge(old);
 
-                return old.getId();
+                retCode = old.getId();
             }
+
+            em.getTransaction().commit();
+
+            return retCode;
         } finally {
             em.close();
         }

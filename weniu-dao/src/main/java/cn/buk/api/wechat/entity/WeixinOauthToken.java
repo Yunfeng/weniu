@@ -5,6 +5,7 @@ import java.util.Date;
 
 /**
  * 微信网页授权token Oauth
+ * @author yfdai
  */
 @Entity
 @Table(name="weixin_oauth_token")

@@ -13,7 +13,7 @@ import java.util.List;
  * 微信公众号服务类
  *
  * @author yfdai
- * @date 2017/2/6
+ * 2017/2/6
  */
 public interface WeixinService {
 
@@ -30,7 +30,7 @@ public interface WeixinService {
    * @param config
    * @return
    */
-  JsonResult saveWeixinServiceConfig(int enterpriseId, WeixinServiceConfig config);
+  int saveWeixinServiceConfig(int enterpriseId, WeixinServiceConfig config);
 
   /**
    * 验证消息来源是否微信发送的
@@ -63,7 +63,7 @@ public interface WeixinService {
 
   /**
    * 微信网页授权
-   *
+   * @param enterpriseId 企业id
    * @param weixinOauthCode 授权的code
    * @return
    */
@@ -205,22 +205,15 @@ public interface WeixinService {
 
   /**
    * 微信公众号自定义菜单创建接口
-   */
-  BaseResponse createCustomMenu(int enterpriseId);
-
-  /**
-   * 创建自定义菜单
-   *
-   * @param enterpriseId 企业id
-   * @param jsonFilename 保存自定义菜单信息的文件名
+   * @param enterpriseId
    * @return
    */
-  @Deprecated
-  BaseResponse createCustomMenu(final int enterpriseId, String jsonFilename);
+  BaseResponse uploadCustomMenu(int enterpriseId);
 
-  int createCustomMenu(int enterpriseId, String name, String type, String url, String key, int level, int parentId);
 
-  int createCustomMenu(int enterpriseId, String name, String type, String url, String key, int level, int parentId, int bindUrl);
+  int createCustomMenu(int enterpriseId, String name, int orderNum, String type, String url, String key, int level, int parentId);
+
+  int createCustomMenu(int enterpriseId, String name, int orderNum, String type, String url, String key, int level, int parentId, int bindUrl);
 
 
   /**
@@ -296,12 +289,5 @@ public interface WeixinService {
    */
   String buildUrlInWeixin(final int enterpriseId, String url);
 
-  /**
-   * 将长连接转化为短链接
-   *
-   * @param enterpriseId 企业id
-   * @param longUrl      长链接内容
-   * @return
-   */
-  Long2ShortUrlDto convertLong2ShortUlr(final int enterpriseId, final String longUrl);
+
 }

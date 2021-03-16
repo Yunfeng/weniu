@@ -5,7 +5,9 @@ import java.util.Date;
 
 /**
  * 微信自定义菜单
- * Created by yfdai on 2017/2/23.
+ *
+ * @author yfdai
+ *  2017/2/23
  */
 @Entity
 @Table(name = "weixin_custom_menu")
@@ -22,19 +24,31 @@ public class WeixinCustomMenu {
      * 自定义菜单最多包括3个一级菜单，每个一级菜单最多包含5个二级菜单。
      * 一级菜单最多4个汉字，二级菜单最多7个汉字，多出来的部分将会以“...”代替。
      * 二级菜单好像可以不只5个字
+     * 1,2 1-表示一级菜单
      */
-    private int level; //1,2 1-表示一级菜单
+    private int level;
 
     @Column(name = "parent_id")
     private int parentId;
 
     private String name;
 
-    private String type; // click view
+    /**
+     * 生成菜单时的顺序值
+     */
+    @Column(name = "order_num")
+    private Integer orderNum;
 
+    /**
+     * click view
+     */
+    private String type;
+
+    /**
+     * type = click
+     */
     @Column(name = "event_key")
-    private String key; // type = click
-
+    private String key;
 
     /**
      * 0 - 不绑定 微信授权 url
@@ -45,13 +59,18 @@ public class WeixinCustomMenu {
 
     /**
      * 2000是指字符
+     * type = view
      */
     @Column(length = 2000)
-    private String url; // type = view
+    private String url;
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "create_time", insertable = false, updatable = false)
     private Date createTime;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "last_update", insertable = false)
+    private Date lastUpdate;
 
     public int getId() {
         return id;
@@ -131,5 +150,13 @@ public class WeixinCustomMenu {
 
     public void setBindUrl(Integer bindUrl) {
         this.bindUrl = bindUrl;
+    }
+
+    public int getOrderNum() {
+        return orderNum == null ? 0 : orderNum;
+    }
+
+    public void setOrderNum(Integer orderNum) {
+        this.orderNum = orderNum;
     }
 }

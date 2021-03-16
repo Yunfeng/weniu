@@ -6,7 +6,7 @@ import java.util.Date;
 /**
  *
  * @author yfdai
- * @date 2019-04-07
+ * 2019-04-07
  *
  * 微信服务号应用的API参数
  */

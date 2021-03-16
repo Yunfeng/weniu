@@ -4,7 +4,7 @@ import javax.persistence.*;
 import java.util.Date;
 
 /**
- * User: yfdai
+ * @author yfdai
  */
 @Entity
 @Table(name="weixin_token")

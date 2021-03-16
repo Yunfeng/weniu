@@ -31,8 +31,9 @@ public abstract class AbstractDao {
 
 			retCode = 1;
 		} catch (Exception ex) {
-			if (em.getTransaction().isActive())
+			if (em.getTransaction().isActive()) {
 				em.getTransaction().rollback();
+			}
 
 			retCode = -100;
 			ex.printStackTrace();

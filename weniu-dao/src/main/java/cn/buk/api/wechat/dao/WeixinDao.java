@@ -39,10 +39,20 @@ public interface WeixinDao {
     WeixinTemplate searchWeixinTemplate(int ownerId, String id);
     List<WeixinTemplate> searchWeixinTemplates(int ownerId);
 
+    /**
+     * 查找微信公众号的自定义菜单
+     * @param ownerId
+     * @return
+     */
     List<WeixinCustomMenu> searchCustomMenus(int ownerId);
 
     int deleteCustomMenu(int ownerId, int id);
 
+    /**
+     * 保存微信公众号的自定义菜单
+     * @param o
+     * @return
+     */
     int createCustomMenu(WeixinCustomMenu o);
 
     int createWeixinMaterial(WeixinMaterial wm);
