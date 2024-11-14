@@ -1,15 +1,17 @@
 package cn.buk.api.wechat.work.service;
 
 import cn.buk.api.wechat.entity.*;
-import cn.buk.api.wechat.util.HttpUtil;
 import cn.buk.api.wechat.work.dto.*;
-import cn.buk.util.DateUtil;
+import cn.buk.common.util.DateUtil;
+import cn.buk.common.util.HttpUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.qq.weixin.mp.aes.WXBizMsgCrypt;
-import org.apache.http.NameValuePair;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.log4j.Logger;
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.http.message.BasicNameValuePair;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -17,7 +19,7 @@ import java.util.List;
 
 public class WwopenServiceImpl extends BaseService implements WwopenService {
 
-    private static final Logger logger = Logger.getLogger(WwopenServiceImpl.class);
+    private static final Logger logger = LogManager.getLogger(WwopenServiceImpl.class);
 
 //    @Autowired
 //    private WeixinDao weixinDao;

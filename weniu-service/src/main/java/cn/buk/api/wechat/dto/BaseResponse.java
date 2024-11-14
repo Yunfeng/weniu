@@ -1,12 +1,20 @@
 package cn.buk.api.wechat.dto;
 
 /**
- * Created by yfdai on 2017/6/7.
+ *
+ * @author yfdai
+ * @date 2017/6/7
  */
 public class BaseResponse {
 
+    /**
+     * 出错返回码，为0表示成功，非0表示调用失败
+     */
     private int errcode;
 
+    /**
+     *  	返回码提示语
+     */
     private String errmsg;
 
     public int getErrcode() {

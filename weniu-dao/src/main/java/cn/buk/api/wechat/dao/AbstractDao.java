@@ -2,17 +2,16 @@ package cn.buk.api.wechat.dao;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceUnit;
 
+/**
+ * @author yfdai
+ */
 public abstract class AbstractDao {
 
-	@PersistenceUnit(unitName = "weniuEMF")
-	private EntityManagerFactory emf;
-
-	protected EntityManager createEntityManager() {
-		return emf.createEntityManager();
-	}
-
+	@PersistenceContext(unitName = "weniu")
+	protected EntityManager em;
 
 	/**
 	 * 保存新对象
@@ -23,23 +22,9 @@ public abstract class AbstractDao {
 	protected int persist(Object object) {
 		int retCode;
 
-		EntityManager em = createEntityManager();
-		try {
-			em.getTransaction().begin();
 			em.persist(object);
-			em.getTransaction().commit();
 
 			retCode = 1;
-		} catch (Exception ex) {
-			if (em.getTransaction().isActive()) {
-				em.getTransaction().rollback();
-			}
-
-			retCode = -100;
-			ex.printStackTrace();
-		} finally {
-			em.close();
-		}
 
 		return retCode;
 	}

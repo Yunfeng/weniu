@@ -4,6 +4,7 @@ import java.security.MessageDigest;
 
 /**
  * User: yfdai
+ * @author yfdai
  */
 
 public class EncoderHandler {

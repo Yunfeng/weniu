@@ -1,11 +1,15 @@
 package cn.buk.api.wechat.dto;
 
 /**
- * Created by yfdai on 2017/5/1.
+ *
+ * @author yfdai
  */
 public class WxTemplateSend {
 
-    private String touser; //openid
+    /**
+     *openid
+     */
+    private String touser;
     private String template_id;
     private String url;
 

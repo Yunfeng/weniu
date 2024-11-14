@@ -3,12 +3,14 @@ package cn.buk.api.wechat.work.service;
 import cn.buk.api.wechat.dao.WeixinDao;
 import cn.buk.api.wechat.entity.Token;
 import cn.buk.api.wechat.entity.WeixinEntConfig;
-import cn.buk.api.wechat.util.HttpUtil;
-import cn.buk.util.DateUtil;
-import com.alibaba.fastjson.JSONObject;
-import org.apache.http.NameValuePair;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.log4j.Logger;
+import cn.buk.api.wechat.work.dto.TokenResponse;
+import cn.buk.common.util.DateUtil;
+import cn.buk.common.util.HttpUtil;
+import com.alibaba.fastjson.JSON;
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.http.message.BasicNameValuePair;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
@@ -21,7 +23,12 @@ import static cn.buk.api.wechat.entity.WeixinEntConfig.WORK_WX_DEFAULT;
  */
 public class BaseService {
 
-    private static final Logger logger = Logger.getLogger(BaseService.class);
+    private static final Logger logger = LogManager.getLogger(BaseService.class);
+
+    /**
+     * 是否在控制台输出
+     */
+    protected boolean outputJson;
 
     @Autowired
     protected WeixinDao weixinDao;
@@ -30,6 +37,7 @@ public class BaseService {
     protected Token getToken(int enterpriseId) {
         return getToken(enterpriseId, false);
     }
+
     protected Token getToken(int enterpriseId, boolean forced) {
         return getToken(enterpriseId, WORK_WX_DEFAULT, forced);
     }
@@ -49,29 +57,30 @@ public class BaseService {
 
         if (forced || token == null || pastSeconds >= token.getExpires_in()) {
             //去获取新token
-            //https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=APPID&secret=APPSECRET
-            String url = "https://qyapi.weixin.qq.com/cgi-bin/gettoken?";
+            final String url = "https://qyapi.weixin.qq.com/cgi-bin/gettoken?";
 
             List<NameValuePair> params = new ArrayList<>();
-
             params.add(new BasicNameValuePair("corpid", entConfig.getCorpId()));
             params.add(new BasicNameValuePair("corpsecret", entConfig.getSecret()));
 
-            String jsonStr = HttpUtil.getUrl(url, params);
-
-            System.out.println(jsonStr);
+            final String jsonStr = HttpUtil.getUrl(url, params);
+            if (this.outputJson) {
+                logger.info(jsonStr);
+            }
 
             //判断返回结果
-            JSONObject param = JSONObject.parseObject(jsonStr);
+            var rs = JSON.parseObject(jsonStr, TokenResponse.class);
+            if (rs.getErrcode() == 0) {
 
-            token = new Token();
-            token.setAccess_token((String) param.get("access_token"));
-            token.setExpires_in((Integer) param.get("expires_in"));
-            token.setEnterpriseId(enterpriseId);
-            token.setWeixinType(Token.WORK_WEIXIN_TOKEN);
-            token.setMsgType(msgType);
+                token = new Token();
+                token.setAccess_token(rs.getAccessToken());
+                token.setExpires_in(rs.getExpiresIn());
+                token.setEnterpriseId(enterpriseId);
+                token.setWeixinType(Token.WORK_WEIXIN_TOKEN);
+                token.setMsgType(msgType);
 
-            weixinDao.createWeixinToken(token);
+                weixinDao.createWeixinToken(token);
+            }
         }
 
         return token;

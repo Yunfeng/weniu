@@ -1,88 +1,34 @@
 package cn.buk.api.wechat.util;
 
-import org.apache.http.*;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.utils.URLEncodedUtils;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.util.EntityUtils;
-import org.apache.log4j.Logger;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.core5.http.*;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.hc.core5.util.Timeout;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+
+import static cn.buk.common.util.HttpUtil.createHttpClient;
+import static java.net.SocketOptions.SO_TIMEOUT;
 
 /**
  * User: yfdai
+ * @author yfdai
  */
-public class HttpUtil extends BaseHttpClient {
+public class HttpUtil1  {
 
-    private static final Logger logger = Logger.getLogger(HttpUtil.class);
+    private static final Logger logger = LogManager.getLogger(HttpUtil1.class);
 
-    public static String getUrl(String url, List<NameValuePair> params) {
-        //TODO 判断params有的话，还要判断url的结果字符是否为"?"
-        String uri = url;
-        if (params != null) uri += URLEncodedUtils.format(params, "UTF-8");
-
-        System.out.println(uri);
-        logger.info(uri);
-
-        CloseableHttpClient httpClient = createHttpClient();
-        RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(SO_TIMEOUT).setConnectTimeout(CONNECTION_TIMEOUT).build();
-
-        HttpGet httpGet = new HttpGet(uri);
-        httpGet.setConfig(requestConfig);
-        String rs = "";
-
-        try {
-            CloseableHttpResponse response = httpClient.execute(httpGet);
-
-            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                rs = EntityUtils.toString(response.getEntity(), "UTF-8");
-
-                logger.info("response: " + rs);
-            }
-
-            response.close();
-        } catch (Exception e) {
-            logger.error(e.getMessage());
-        }
-
-        return rs;
-    }
-
-    public static String postUrl(String url, String body) {
-        CloseableHttpClient httpClient = createHttpClient();
-        RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(SO_TIMEOUT).setConnectTimeout(CONNECTION_TIMEOUT).build();
-
-        HttpPost httpPost = new HttpPost(url);
-        httpPost.setConfig(requestConfig);
-
-        String rs = "";
-
-        try {
-            StringEntity entity = new StringEntity(body, "UTF-8");
-            httpPost.setEntity(entity);
-
-            CloseableHttpResponse response = httpClient.execute(httpPost);
-
-            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                outHeaders(response);
-                rs = EntityUtils.toString(response.getEntity(), "UTF-8");
-            }
-
-            response.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-            logger.error(e.getMessage());
-        }
-
-        return rs;
-    }
 
     /**
      * 根据url下载文件，保存到filePath中
@@ -92,13 +38,13 @@ public class HttpUtil extends BaseHttpClient {
      */
     public static String downloadFile(String url, String body, String filePath) {
         CloseableHttpClient httpClient = createHttpClient();
-        RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(SO_TIMEOUT).setConnectTimeout(CONNECTION_TIMEOUT).build();
+        RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(Timeout.ofMilliseconds(60000)).build();
 
         HttpPost httpPost = new HttpPost(url);
         httpPost.setConfig(requestConfig);
 
         try {
-            StringEntity entity = new StringEntity(body, "UTF-8");
+            StringEntity entity = new StringEntity(body, StandardCharsets.UTF_8);
             httpPost.setEntity(entity);
 
             CloseableHttpResponse response = httpClient.execute(httpPost);
@@ -146,10 +92,10 @@ public class HttpUtil extends BaseHttpClient {
         String filename = null;
         try {
             CloseableHttpClient httpClient = createHttpClient();
-            RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(SO_TIMEOUT).setConnectTimeout(CONNECTION_TIMEOUT).build();
+            RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(Timeout.ofMilliseconds(600000)).build();
 
             HttpGet httpget = new HttpGet(url);
-            HttpResponse response = httpClient.execute(httpget);
+            var response = httpClient.execute(httpget);
 
             outHeaders(response);
 
@@ -209,7 +155,7 @@ public class HttpUtil extends BaseHttpClient {
     }
 
     public static void outHeaders(HttpResponse response) {
-        Header[] headers = response.getAllHeaders();
+        Header[] headers = response.getHeaders();
         for (int i = 0; i < headers.length; i++) {
             logger.debug(headers[i]);
         }
@@ -229,22 +175,23 @@ public class HttpUtil extends BaseHttpClient {
      * @return
      */
     public static String getFileName(HttpResponse response) {
-        Header contentHeader = response.getFirstHeader("Content-Disposition");
+        var contentHeader = response.getFirstHeader("Content-Disposition");
         String filename = null;
         if (contentHeader != null) {
-            HeaderElement[] values = contentHeader.getElements();
-            if (values.length == 1) {
-                NameValuePair param = values[0].getParameterByName("filename");
-                if (param != null) {
-                    try {
-                        //filename = new String(param.getValue().toString().getBytes(), "utf-8");
-                        //filename=URLDecoder.decode(param.getValue(),"utf-8");
-                        filename = param.getValue();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
+            //TODO ss
+//            HeaderElement[] values = contentHeader.getElements();
+//            if (values.length == 1) {
+//                NameValuePair param = values[0].getParameterByName("filename");
+//                if (param != null) {
+//                    try {
+//                        //filename = new String(param.getValue().toString().getBytes(), "utf-8");
+//                        //filename=URLDecoder.decode(param.getValue(),"utf-8");
+//                        filename = param.getValue();
+//                    } catch (Exception e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//            }
         }
         return filename;
     }

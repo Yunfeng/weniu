@@ -11,112 +11,123 @@ import java.util.List;
  */
 public interface WeixinDao {
 
-    /**
-     * 保存Token
-     */
-    int createWeixinOauthToken(WeixinOauthToken token);
+  /**
+   * 保存Token
+   */
+  int createWeixinOauthToken(WeixinOauthToken token);
 
-    int createWeixinAccessTime(String weixinOpenId, int weixinId);
+  int createWeixinAccessTime(String weixinOpenId, int weixinId);
 
-    /**
-     * 获取当前有效的token
-     */
-    Token retrieveWeixinToken(int weixinId, int weixinType, int msgType);
+  /**
+   * 获取当前有效的token
+   */
+  Token retrieveWeixinToken(int weixinId, int weixinType, int msgType);
 
-    /**
-     * 保存Token
-     */
-    int createWeixinToken(Token token);
+  /**
+   * 保存Token
+   */
+  int createWeixinToken(Token token);
 
-    int createWeixinUser(WeixinUser user);
+  int createWeixinUser(WeixinUser user);
 
-    List<WeixinUser> searchSubscribers(int enterpriseId, CommonSearchCriteria sc);
+  List<WeixinUser> listWeixinUser(int weixinId);
 
-    WeixinUser searchWeixinUser(int enterpriseId, String openId);
+  List<WeixinUser> searchSubscribers(int enterpriseId, CommonSearchCriteria sc);
 
-    int createWeixinTemplate(WeixinTemplate t1);
+  WeixinUser searchWeixinUser(int enterpriseId, String openId);
 
-    WeixinTemplate searchWeixinTemplate(int ownerId, String id);
-    List<WeixinTemplate> searchWeixinTemplates(int ownerId);
+  int createWeixinTemplate(WeixinTemplate t1);
 
-    /**
-     * 查找微信公众号的自定义菜单
-     * @param ownerId
-     * @return
-     */
-    List<WeixinCustomMenu> searchCustomMenus(int ownerId);
+  WeixinTemplate searchWeixinTemplate(int ownerId, String id);
 
-    int deleteCustomMenu(int ownerId, int id);
+  List<WeixinTemplate> searchWeixinTemplates(int ownerId);
 
-    /**
-     * 保存微信公众号的自定义菜单
-     * @param o
-     * @return
-     */
-    int createCustomMenu(WeixinCustomMenu o);
+  /**
+   * 查找微信公众号的自定义菜单
+   *
+   * @param ownerId
+   * @return
+   */
+  List<WeixinCustomMenu> searchCustomMenus(int ownerId);
 
-    int createWeixinMaterial(WeixinMaterial wm);
-    int updateWeixinMaterial(WeixinMaterial wm);
+  int deleteCustomMenu(int ownerId, int id);
 
-    List<WeixinMaterial> searchMaterials(int enterpriseId, CommonSearchCriteria sc);
-    List<WeixinMaterial> searchMaterials(int enterpriseId, String mediaId);
+  /**
+   * 保存微信公众号的自定义菜单
+   *
+   * @param o
+   * @return
+   */
+  int createCustomMenu(WeixinCustomMenu o);
 
-    WeixinMaterial searchWeixinMaterial(int weixinId, int id);
+  int createWeixinMaterial(WeixinMaterial wm);
 
-    List<WeixinNews> searchWeixinNews(int weixinId);
+  int updateWeixinMaterial(WeixinMaterial wm);
 
-    int createWxNews(WeixinNews o);
+  List<WeixinMaterial> searchMaterials(int enterpriseId, CommonSearchCriteria sc);
 
-    int deleteWxNews(int enterpriseId, int id);
+  List<WeixinMaterial> searchMaterials(int enterpriseId, String mediaId);
 
-    /**
-     * 获取企业微信的设置参数
-     * @param enterpriseId 企业ID
-     * @param msgType 消息类型
-     */
-    WeixinEntConfig getWeixinEntConfig(int enterpriseId, int msgType);
+  WeixinMaterial searchWeixinMaterial(int weixinId, int id);
 
-    List<WeixinGroup> listWeixinGroup(int weixinId);
+  List<WeixinNews> searchWeixinNews(int weixinId);
 
-    WeixinGroup getWeixinGroup(int weixinId, int groupId);
+  int createWxNews(WeixinNews o);
 
-    List<WeixinUser> listWeixinUser(int weixinId);
+  int deleteWxNews(int enterpriseId, int id);
 
-    int updateWeixinGroup(WeixinGroup weixinGroup);
+  /**
+   * 获取企业微信的设置参数
+   *
+   * @param enterpriseId 企业ID
+   * @param msgType      消息类型
+   */
+  WeixinEntConfig getWeixinEntConfig(int enterpriseId, int msgType);
 
-    WeixinUser getWeixinUser(int weixinId, String weixinOpenId);
+  List<WeixinGroup> listWeixinGroup(int weixinId);
 
-    WeixinUser getWeixinUser(int weixinId, int userId);
+  WeixinGroup getWeixinGroup(int weixinId, int groupId);
 
-    int updateWeixinUser(WeixinUser user);
 
-    int createWeixinGroup(WeixinGroup group);
+  int updateWeixinGroup(WeixinGroup weixinGroup);
 
-    int saveSuiteTicket(int enterpriseId, String suiteId, String suiteTicket, Date timeStamp);
+  WeixinUser getWeixinUser(int weixinId, String weixinOpenId);
 
-    WwProviderTicket getSuiteTicket(int enterpriseId, String suiteId);
+  WeixinUser getWeixinUser(int weixinId, int userId);
 
-    WwProviderToken retrieveWwProviderToken(int enterpriseId, String suiteId);
+  int updateWeixinUser(WeixinUser user);
 
-    int saveWwProviderToken(int enterpriseId, String suiteId, String suiteAccessToken, int expiresIn);
+  int createWeixinGroup(WeixinGroup group);
 
-    int saveWwpAuthCorpInfo(WwProviderAuthCorpInfo corpInfo);
+  int saveSuiteTicket(int enterpriseId, String suiteId, String suiteTicket, Date timeStamp);
 
-    WwProviderAuthCorpInfo getWwpAuthCorpInfo(int enterpriseId, String suiteId, String corpId);
+  WwProviderTicket getSuiteTicket(int enterpriseId, String suiteId);
 
-    int updateWwpAuthCorpAccessToken(int enterpriseId, String authCorpId, String access_token, int expires_in);
+  WwProviderToken retrieveWwProviderToken(int enterpriseId, String suiteId);
 
-    int cancelSuiteAuthInfo(int enterpriseId, String suiteId, String authCorpId);
+  int saveWwProviderToken(int enterpriseId, String suiteId, String suiteAccessToken, int expiresIn);
 
-    /**
-     * 获取微信服务号的配置信息
-     */
-    WeixinServiceConfig getWeixinServiceConfig(int enterpriseId);
+  int saveWwpAuthCorpInfo(WwProviderAuthCorpInfo corpInfo);
 
-    /**
-     * 保存微信服务号开发参数
-     * @param config
-     * @return
-     */
-    int saveWeixinServiceConfig(WeixinServiceConfig config);
+  WwProviderAuthCorpInfo getWwpAuthCorpInfo(int enterpriseId, String suiteId, String corpId);
+
+  int updateWwpAuthCorpAccessToken(int enterpriseId, String authCorpId, String access_token, int expires_in);
+
+  int cancelSuiteAuthInfo(int enterpriseId, String suiteId, String authCorpId);
+
+  /**
+   * 获取微信服务号的配置信息
+   */
+  WeixinServiceConfig getWeixinServiceConfig(int enterpriseId);
+
+  /**
+   * 保存微信服务号开发参数
+   */
+  int saveWeixinServiceConfig(WeixinServiceConfig config);
+
+  int saveWorkWeixinConfig(WeixinEntConfig config);
+
+  WeixinEntConfig getWorkWeixinConfig(int enterpriseId, int msgType);
+
+  List<WeixinEntConfig> searchWorkWeixinConfigs(int enterpriseId);
 }

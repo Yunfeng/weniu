@@ -1,7 +1,9 @@
 package cn.buk.api.wechat.work.message;
 
 /**
- * Created by william on 2015-10-23.
+ *
+ * @author william
+ * @date 2015-10-23
  */
 public class Text {
 

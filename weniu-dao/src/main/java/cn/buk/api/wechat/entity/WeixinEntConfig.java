@@ -1,5 +1,7 @@
 package cn.buk.api.wechat.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import javax.persistence.*;
 import java.util.Date;
 
@@ -84,10 +86,12 @@ public class WeixinEntConfig {
     @Column(name = "encoding_aes_key")
     private String encodingAESKey;
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "create_time", insertable = false, updatable = false)
     private Date createTime;
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "last_update", insertable = false)
     private Date lastUpdate;

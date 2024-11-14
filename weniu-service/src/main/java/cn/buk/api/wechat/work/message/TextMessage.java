@@ -2,6 +2,7 @@ package cn.buk.api.wechat.work.message;
 
 /**
  * 发送应用消息:文本消息
+ * @author yfdai
  */
 public class TextMessage extends AbstractMessage {
 

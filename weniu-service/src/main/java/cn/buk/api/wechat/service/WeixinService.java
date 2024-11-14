@@ -19,16 +19,11 @@ public interface WeixinService {
 
   /**
    * 查找企业的微信公众号（服务号）的配置参数
-   * @param enterpriseId
-   * @return
    */
   WeixinServiceConfig getWeixinServiceConfig(int enterpriseId);
 
   /**
    * 保存微信公众号的配置参数
-   * @param enterpriseId
-   * @param config
-   * @return
    */
   int saveWeixinServiceConfig(int enterpriseId, WeixinServiceConfig config);
 
@@ -44,18 +39,12 @@ public interface WeixinService {
 
   /**
    * 处理微信主动发送过来的事件
-   *
-   * @param enterpriseId
-   * @param response
-   * @param rq
    */
   void processWeixinEvent(int enterpriseId, HttpServletResponse response, WxData rq);
 
   /**
    * 处理微信消息
    *
-   * @param request
-   * @param response
    */
   void processWeixinMessage(int enterpriseId, HttpServletRequest request, HttpServletResponse response);
 
@@ -65,7 +54,6 @@ public interface WeixinService {
    * 微信网页授权
    * @param enterpriseId 企业id
    * @param weixinOauthCode 授权的code
-   * @return
    */
   WeixinOauthToken getOauthToken(int enterpriseId, String weixinOauthCode);
 
@@ -73,8 +61,6 @@ public interface WeixinService {
   /**
    * 基础支持-获取access_token：从数据库中获取，必要时重新获取
    *
-   * @param enterpriseId
-   * @return
    */
   Token searchAccessToken(int enterpriseId);
 
@@ -107,44 +93,33 @@ public interface WeixinService {
    * 根据openid获取用户基本信息
    *
    * @param openid 微信用户的唯一标示
-   * @return
    */
   WeixinUserInfo getUserInfo(final int enterpriseId, String openid);
 
 
   /**
    * 获取素材总数
-   *
-   * @return
    */
   WxMaterialSummary getMaterialSummary(final int enterpriseId);
 
   /**
    * 获取素材列表
-   *
-   * @return
    */
   WxMaterials getMaterials(final int enterpriseId, final String mediaType, final int offset, final int count);
 
   /**
    * 新增永久素材(非图文素材）
-   *
-   * @return
    */
   WxMediaResponse addMaterial(final int enterpriseId, String filePath, String mediaType);
 
   /**
    * 新增永久图文素材
-   *
-   * @return
    */
   WxMediaResponse addMaterialNews(final int enterpriseId, WxNewsRequest request);
 
   /**
    * 上传图文消息内的图片获取URL
    *
-   * @param filePath
-   * @return
    */
   WxMediaResponse uploadNewsImage(final int enterpriseId, String filePath);
 
@@ -167,7 +142,14 @@ public interface WeixinService {
 
   //database operation
 
+  /**
+   * weixin  user
+   */
+  List<WeixinUser> getUserList(final int enterpriseId);
+
   List<WeixinUser> searchSubscribers(int enterpriseId, CommonSearchCriteria sc);
+
+  WeixinUser searchWeixinUser(int enterpriseId, String openId);
 
   /**
    * 查找本地保存的永久素材列表
@@ -238,10 +220,6 @@ public interface WeixinService {
 
   /**
    * 发送客服消息
-   *
-   * @param toUser
-   * @param content
-   * @return
    */
   String sendWeixinCustomMessage(final int enterpriseId, String toUser, String content);
 
@@ -262,15 +240,11 @@ public interface WeixinService {
    *
    * @param groupId   要修改的分组id
    * @param groupName 新名字
-   * @return
    */
   JsonResult apiUpdateGroup(final int enterpriseId, int groupId, String groupName);
 
 
-  /**
-   * weixin  user
-   */
-  List<WeixinUser> getUserList(final int enterpriseId);
+
 
 
   /**
@@ -284,8 +258,6 @@ public interface WeixinService {
   /**
    * 生成 微信授权的 url
    *
-   * @param url
-   * @return
    */
   String buildUrlInWeixin(final int enterpriseId, String url);
 

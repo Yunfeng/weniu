@@ -1,7 +1,9 @@
 package cn.buk.api.wechat.dto;
 
 /**
- * Created by yfdai on 2017/5/1.
+ *
+ * @author yfdai
+ * 2017/5/1
  */
 public class WxTemplateDataParam {
 

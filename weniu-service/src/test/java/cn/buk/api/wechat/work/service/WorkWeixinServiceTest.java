@@ -7,7 +7,6 @@ import cn.buk.api.wechat.work.dto.ExternalContactDetailResponse;
 import cn.buk.api.wechat.work.dto.ExternalContactFollowUsersResponse;
 import cn.buk.api.wechat.work.dto.ExternalContactListResponse;
 import cn.buk.api.wechat.work.dto.UploadMediaResponse;
-import cn.buk.util.DateUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -18,13 +17,12 @@ import org.mockito.MockitoAnnotations;
 import java.io.File;
 import java.io.IOException;
 
-import static cn.buk.api.wechat.entity.WeixinEntConfig.WORK_WX_DEFAULT;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.when;
 
 @Disabled
-class WorkWeixinServiceTest {
+class WorkWeixinServiceTest extends BaseTest {
 
   @Mock
   private WeixinDao weixinDao;
@@ -34,41 +32,18 @@ class WorkWeixinServiceTest {
 
   @BeforeEach
   void setUp() {
-    MockitoAnnotations.initMocks(this);
+    MockitoAnnotations.openMocks(this);
   }
 
-//  @Disabled
   @Test
   void test_getToken() {
-
     WeixinEntConfig config = createConfig();
-
 
     when(weixinDao.getWeixinEntConfig(anyInt(), anyInt())).thenReturn(config);
     when(weixinDao.retrieveWeixinToken(anyInt(), anyInt(), anyInt())).thenReturn(null);
 
-    service.getWorkWeixinToken(1, false);
-
-  }
-
-  private WeixinEntConfig createConfig() {
-    WeixinEntConfig config = new WeixinEntConfig();
-    config.setEnterpriseId(1);
-    config.setCorpId("wx92bd521d408c3cc2");
-    //默认企业微信应用
-    config.setMsgType(WORK_WX_DEFAULT);
-    config.setAgentId(1);
-    config.setSecret("Efw49qHFbqD4Ydah2OqxBw7PPsh-DZIy5CFDTQACb1I");
-
-    return config;
-  }
-
-  private Token createToken() {
-    Token token = new Token();
-    token.setAccess_token("F4N-FTGLX0zPhtDg4sIV59PPrBL_yStypnGm05qZhxZXehwMXRi_ADhuK85NPEmLE-WTnamOV-EVaZ288E4GqA40oJ708TVyoeCtFs71X92UnQqAwBo9hsBKgf-k-h4YilJknRqDI_s-s_f12APYD6INLD2bfTNvU_0vK4jpsQgr-NtV_3p6cubSuUpooyWyYK9i_ml7ZP6gZFBOzYjeyg");
-    token.setExpires_in(7200);
-    token.setCreateTime(DateUtil.getCurDateTime());
-    return token;
+    var token = service.getWorkWeixinToken(1, false);
+    assertNotNull(token);
   }
 
   @Test

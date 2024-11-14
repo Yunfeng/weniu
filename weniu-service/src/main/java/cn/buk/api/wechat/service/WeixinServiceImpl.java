@@ -5,20 +5,22 @@ import cn.buk.api.wechat.dao.WeixinDao;
 import cn.buk.api.wechat.dto.*;
 import cn.buk.api.wechat.entity.*;
 import cn.buk.api.wechat.util.EncoderHandler;
-import cn.buk.api.wechat.util.FileUtil;
-import cn.buk.api.wechat.util.HttpUtil;
+import cn.buk.api.wechat.util.HttpUtil1;
 import cn.buk.api.wechat.util.SignUtil;
 import cn.buk.common.sc.CommonSearchCriteria;
-import cn.buk.util.DateUtil;
+import cn.buk.common.util.DateUtil;
 import cn.buk.common.JsonResult;
-import cn.buk.util.StringUtil;
+import cn.buk.common.util.HttpUtil;
+import cn.buk.common.util.StringUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.log4j.Logger;
+
+import org.apache.hc.client5.http.ClientProtocolException;
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.http.message.BasicNameValuePair;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -33,16 +35,17 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static cn.buk.api.wechat.util.HttpUtil.downloadFile;
-import static cn.buk.api.wechat.util.HttpUtil.postUrl;
-import static cn.buk.api.wechat.util.HttpUtil.sendResponse;
+import static cn.buk.api.wechat.util.HttpUtil1.downloadFile;
+import static cn.buk.api.wechat.util.HttpUtil1.sendResponse;
+import static cn.buk.common.util.HttpUtil.postUrl;
+
 
 /**
  * Created by yfdai on 2017/2/6.
  */
 public class WeixinServiceImpl implements WeixinService {
 
-    private static final Logger logger = Logger.getLogger(WeixinServiceImpl.class);
+    private static final Logger logger = LogManager.getLogger(WeixinServiceImpl.class);
 
     /**
      * 文本的客服消息
@@ -406,7 +409,7 @@ public class WeixinServiceImpl implements WeixinService {
         List<NameValuePair> params = new ArrayList<>();
         params.add(new BasicNameValuePair("body", jsonBody));
 
-        String jsonStr = HttpUtil.postUrl(url, jsonBody);
+        String jsonStr = postUrl(url, jsonBody);
 
         return JSON.parseObject(jsonStr, BaseResponse.class);
     }
@@ -539,7 +542,7 @@ public class WeixinServiceImpl implements WeixinService {
         List<NameValuePair> params = new ArrayList<>();
         params.add(new BasicNameValuePair("body", jsonBody));
 
-        String result = HttpUtil.postUrl(url, jsonBody);
+        String result = postUrl(url, jsonBody);
 
 //        try {
 //            //result = new String(result.getBytes("ISO-8859-1"), "UTF-8");
@@ -621,7 +624,7 @@ public class WeixinServiceImpl implements WeixinService {
                 //1.下载该图片
                 logger.info(url);
                 String filepath = getFilePath(url);
-                String filename = HttpUtil.download(url, filepath);
+                String filename = HttpUtil1.download(url, filepath);
 
                 logger.info(filename);
                 if (filename != null) {
@@ -689,7 +692,7 @@ public class WeixinServiceImpl implements WeixinService {
         params.add(new BasicNameValuePair("body", jsonBody));
 
         if (mediaType.equalsIgnoreCase(WeixinMaterial.MATERIAL_NEWS) || mediaType.equalsIgnoreCase(WeixinMaterial.MATERIAL_VIDEO)) {
-            return HttpUtil.postUrl(url, jsonBody);
+            return postUrl(url, jsonBody);
         } else {
             return downloadFile(url, jsonBody, null);
         }
@@ -712,7 +715,7 @@ public class WeixinServiceImpl implements WeixinService {
         List<NameValuePair> params = new ArrayList<>();
         params.add(new BasicNameValuePair("body", jsonBody));
 
-        String result = HttpUtil.postUrl(url, jsonBody);
+        String result = postUrl(url, jsonBody);
 
         return JSON.parseObject(result, WxMediaResponse.class);
     }
@@ -732,7 +735,7 @@ public class WeixinServiceImpl implements WeixinService {
         if (mediaType.equalsIgnoreCase(WeixinMaterial.MATERIAL_VIDEO)) {
             return HttpUtil.getUrl(url, null);
         } else {
-            return HttpUtil.download(url, null);
+            return HttpUtil1.download(url, null);
         }
     }
 
@@ -927,7 +930,7 @@ public class WeixinServiceImpl implements WeixinService {
         List<NameValuePair> params = new ArrayList<>();
         params.add(new BasicNameValuePair("body", jsonBody));
 
-        String result = HttpUtil.postUrl(url, jsonBody);
+        String result = postUrl(url, jsonBody);
 
         try {
             result = new String(result.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8);
@@ -986,6 +989,11 @@ public class WeixinServiceImpl implements WeixinService {
     @Override
     public List<WeixinUser> searchSubscribers(int enterpriseId, CommonSearchCriteria sc) {
         return weixinDao.searchSubscribers(enterpriseId, sc);
+    }
+
+    @Override
+    public WeixinUser searchWeixinUser(int enterpriseId, String openId) {
+        return weixinDao.searchWeixinUser(enterpriseId, openId);
     }
 
     @Override
@@ -1125,7 +1133,7 @@ public class WeixinServiceImpl implements WeixinService {
         List<NameValuePair> params = new ArrayList<>();
         params.add(new BasicNameValuePair("body", jsonBody));
 
-        String result = HttpUtil.postUrl(url, jsonBody);
+        String result = postUrl(url, jsonBody);
 
         try {
             result = new String(result.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8);
@@ -1192,7 +1200,7 @@ public class WeixinServiceImpl implements WeixinService {
 
         String jsonBody = jsonRoot.toString();
 
-        String jsonStr = HttpUtil.postUrl(url, jsonBody);
+        String jsonStr = postUrl(url, jsonBody);
 
 
         //判断返回结果
@@ -1275,7 +1283,7 @@ public class WeixinServiceImpl implements WeixinService {
         jsonObject.put("openid", weixinOpenId);
         String jsonBody = jsonObject.toString();
 
-        String jsonStr = HttpUtil.postUrl(url, jsonBody);
+        String jsonStr = postUrl(url, jsonBody);
 
 
         //判断返回结果
@@ -1404,7 +1412,7 @@ public class WeixinServiceImpl implements WeixinService {
         System.out.println(jsonBody);
         System.out.println(token.getAccess_token());
 
-        return HttpUtil.postUrl(url, jsonBody);
+        return postUrl(url, jsonBody);
     }
 
     @Override
@@ -1423,7 +1431,7 @@ public class WeixinServiceImpl implements WeixinService {
 
         String jsonBody = jsonRoot.toString();
 
-        String jsonStr = HttpUtil.postUrl(url, jsonBody);
+        String jsonStr = postUrl(url, jsonBody);
 
 
         //判断返回结果
@@ -1501,7 +1509,7 @@ public class WeixinServiceImpl implements WeixinService {
         System.out.println(jsonBody);
         System.out.println(token.getAccess_token());
 
-        return HttpUtil.postUrl(url, jsonBody);
+        return postUrl(url, jsonBody);
         //return jsonBody;
     }
 

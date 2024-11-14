@@ -3,30 +3,40 @@ package cn.buk.api.wechat.work.service;
 import cn.buk.api.wechat.dto.BaseResponse;
 import cn.buk.api.wechat.dto.JsSdkParam;
 import cn.buk.api.wechat.entity.Token;
+import cn.buk.api.wechat.entity.WeixinEntConfig;
 import cn.buk.api.wechat.work.dto.*;
+import cn.buk.api.wechat.work.message.AppChatMessage;
 import cn.buk.api.wechat.work.message.TaskCardMessage;
 
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 /**
+ * 企业微信内部开发服务端API调用服务接口
  * @author yfdai
  */
 public interface WorkWeixinService {
+
+  int saveWorkWeixinConfig(int enterpriseId, WeixinEntConfig config);
+
+  WeixinEntConfig getWorkWeixinConfig(int enterpriseId, int msgType);
+
+  List<WeixinEntConfig> searchWorkWeixinConfigs(int enterpriseId);
 
 
   /**
    * 校验消息签名，也就是校验来源
    *
    * @param enterpriseId 企业ID
-   * @param msgType 消息类型：默认应用，通讯录，外部联系人
-   * @param corpId 实际使用的corpId
-   * @param signature 签名
-   * @param timestamp 时间戳
-   * @param nonce 随机字符串
-   * @param msg_encrypt 加密的消息
+   * @param msgType      消息类型：默认应用，通讯录，外部联系人
+   * @param corpId       实际使用的corpId
+   * @param signature    签名
+   * @param timestamp    时间戳
+   * @param nonce        随机字符串
+   * @param msg_encrypt  加密的消息
    */
   String verifyWorkWeixinSource(int enterpriseId, int msgType, final String corpId,
-      String signature, String timestamp, String nonce, String msg_encrypt) throws Exception;
+                                String signature, String timestamp, String nonce, String msg_encrypt) throws Exception;
 
   /**
    * 根据code获取成员信息
@@ -41,22 +51,17 @@ public interface WorkWeixinService {
   UserDetailResponse getUserDetail(int enterpriseId, String userTicket);
 
   /**
-   * 获取自定义菜单
-   * @return
-   */
-//    String getCustomMenu();
-
-  /**
    * 获取jsapi_ticket
    */
   JsSdkParam getJsSdkConfig(int enterpriseId, String jsapi_url);
 
   /**
    * 上传临时素材
+   *
    * @param enterpriseId 企业id
-   * @param mediaType 媒体文件类型
-   * @param filename 媒体文件名
-   * @param displayName 上传后的文件名
+   * @param mediaType    媒体文件类型
+   * @param filename     媒体文件名
+   * @param displayName  上传后的文件名
    * @return 接口返回内容
    */
   UploadMediaResponse uploadMedia(int enterpriseId, String mediaType, String filename, String displayName);
@@ -116,6 +121,7 @@ public interface WorkWeixinService {
 
   /**
    * 获取配置了客户联系功能的成员列表
+   *
    * @param accessToken 调用接口凭证
    * @return
    */
@@ -124,15 +130,17 @@ public interface WorkWeixinService {
 
   /**
    * 获取外部联系人列表
+   *
    * @param accessToken 调用接口凭证
-   * @param userId 企业成员的userid
+   * @param userId      企业成员的userid
    * @return
    */
   ExternalContactListResponse getExternalContactList(String accessToken, String userId);
 
   /**
    * 获取外部联系人详情
-   * @param accessToken 调用接口凭证
+   *
+   * @param accessToken    调用接口凭证
    * @param externalUserId 外部联系人的userid，注意不是企业成员的帐号
    * @return
    */
@@ -152,5 +160,25 @@ public interface WorkWeixinService {
    * 发送应用消息：任务卡片消息
    */
   void sendTaskCardMsg(int enterpriseId, @NotNull TaskCardMessage msg);
+
+  /**
+   * 创建群聊会话
+   */
+  AppChatCreateResponse createAppChat(int enterpriseId, AppChatCreateRequest request);
+
+  /**
+   * 修改群聊会话
+   */
+  BaseResponse updateAppChat(int enterpriseId, AppChatUpdateRequest request);
+
+  /**
+   * 获取群聊会话
+   */
+  AppChatGetResponse getAppChat(int enterpriseId, String chatId);
+
+  /**
+   * 应用推送消息
+   */
+  BaseResponse sendAppChat(int enterpriseId, AppChatMessage msg);
 
 }
