@@ -1,7 +1,7 @@
 package cn.buk.api.wechat.entity;
 
-import javax.persistence.*;
 import java.util.Date;
+import jakarta.persistence.*;
 
 /**
  * 授权企业信息

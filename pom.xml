@@ -36,8 +36,8 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <java.version>21</java.version>
 
-    <springframework.version>5.3.10</springframework.version>
-    <hibernate.version>5.5.7.Final</hibernate.version>
+    <springframework.version>6.1.14</springframework.version>
+    <hibernate.version>6.6.2.Final</hibernate.version>
 
     <junit.jupiter.version>5.8.1</junit.jupiter.version>
     <log4j.version>2.14.1</log4j.version>
@@ -99,16 +99,13 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-compiler-plugin</artifactId>
-            <version>3.3</version>
-            <configuration>
-              <source>1.6</source>
-              <target>1.6</target>
-            </configuration>
+            <version>3.13.0</version>
+
           </plugin>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-gpg-plugin</artifactId>
-            <version>1.6</version>
+            <version>3.2.7</version>
             <executions>
               <execution>
                 <id>sign-artifacts</id>
@@ -122,7 +119,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-source-plugin</artifactId>
-            <version>3.0.1</version>
+            <version>3.3.1</version>
             <executions>
               <execution>
                 <id>attach-sources</id>
@@ -135,7 +132,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-javadoc-plugin</artifactId>
-            <version>2.10.4</version>
+            <version>3.11.1</version>
             <executions>
               <execution>
                 <id>attach-javadocs</id>
@@ -235,6 +232,15 @@
         <scope>provided</scope>
       </dependency>
 
+      <!-- https://mvnrepository.com/artifact/commons-codec/commons-codec -->
+      <dependency>
+        <groupId>commons-codec</groupId>
+        <artifactId>commons-codec</artifactId>
+<!--        <version>1.17.1</version>-->
+        <version>1.9</version>
+      </dependency>
+
+
     </dependencies>
   </dependencyManagement>
 
@@ -243,7 +249,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.8.1</version> <!-- this is critical -->
+        <version>3.13.0</version> <!-- this is critical -->
         <configuration>
           <source>${java.version}</source>
           <target>${java.version}</target>
@@ -251,42 +257,5 @@
       </plugin>
     </plugins>
   </build>
-
-  <distributionManagement>
-    <repository>
-      <id>nexus-releases</id>
-      <name>nexus releases repository</name>
-      <url>http://free2.buk.cn/repository/maven-releases/</url>
-    </repository>
-    <snapshotRepository>
-      <id>nexus-snapshots</id>
-      <name>nexus snapshots repository</name>
-      <url>http://free2.buk.cn/repository/maven-snapshots/</url>
-    </snapshotRepository>
-  </distributionManagement>
-
-  <scm>
-    <connection>scm:svn:https://svn.buk.cn/svn/svnroot/weniu/trunk</connection>
-    <developerConnection>scm:svn:https://svn.buk.cn/svn/svnroot/weniu/trunk</developerConnection>
-    <url>https://svn.buk.cn/svn/svnroot/weniu/trunk</url>
-  </scm>
-
-  <!--<distributionManagement>-->
-    <!--<snapshotRepository>-->
-      <!--<id>ossrh</id>-->
-      <!--<url>https://oss.sonatype.org/content/repositories/snapshots</url>-->
-    <!--</snapshotRepository>-->
-    <!--<repository>-->
-      <!--<id>ossrh</id>-->
-      <!--<url>https://oss.sonatype.org/service/loal/staging/deploy/maven2/</url>-->
-    <!--</repository>-->
-  <!--</distributionManagement>-->
-
-  <!--<scm>-->
-    <!--<connection>scm:git:https://github.com/Yunfeng/weniu.git</connection>-->
-    <!--<developerConnection>scm:git:https://github.com/Yunfeng/weniu.git</developerConnection>-->
-    <!--<url>https://github.com/Yunfeng/weniu</url>-->
-    <!--<tag>v1.2.30</tag>-->
-  <!--</scm>-->
 
 </project>

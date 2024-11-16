@@ -4,16 +4,14 @@ import cn.buk.api.wechat.entity.*;
 import cn.buk.common.sc.CommonSearchCriteria;
 import cn.buk.common.sc.Page;
 import cn.buk.common.util.DateUtil;
+import jakarta.persistence.criteria.*;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
-import javax.persistence.Column;
-import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import javax.transaction.Transactional;
+import jakarta.persistence.Column;
+import jakarta.persistence.EntityManager;
+
+import jakarta.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -124,7 +122,7 @@ public class WeixinDaoImpl extends AbstractDao implements WeixinDao {
 
       cq.where(predicates.toArray(new Predicate[predicates.size()]));
 
-      List<javax.persistence.criteria.Order> orderByes = new ArrayList<>();
+      List<Order> orderByes = new ArrayList<>();
       if (sc.getOrderBy() == 1) {
         orderByes.add(cb.desc(root.get("subscribe_time")));
       } else {
@@ -252,7 +250,7 @@ public class WeixinDaoImpl extends AbstractDao implements WeixinDao {
     where = cb.and(where, cb.equal(root.get(WeixinMaterial_.enterpriseId), enterpriseId));
 
     cq.where(where);
-    List<javax.persistence.criteria.Order> orderByes = new ArrayList<>();
+    List<Order> orderByes = new ArrayList<>();
     orderByes.add(cb.desc(root.get("id")));
 
     cq.orderBy(orderByes);

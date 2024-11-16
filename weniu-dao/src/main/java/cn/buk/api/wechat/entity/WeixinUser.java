@@ -2,7 +2,7 @@ package cn.buk.api.wechat.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.Date;
 
 /**

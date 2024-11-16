@@ -1,22 +1,10 @@
 # weniu
 微信公众平台API实现
 
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/cn.buk.api.wechat/weniu/badge.svg)](https://maven-badges.herokuapp.com/maven-central/cn.buk.api.wechat/weniu)
+## 推送
 
-## maven
-```xml
-<dependency>
-  <groupId>cn.buk.api.wechat</groupId>
-  <artifactId>weniu-service</artifactId>
-  <version>1.2.30</version>
-</dependency>
 ```
 
-# 使用教程
-<a href="https://mp.weixin.qq.com/s?__biz=MzA4OTA5ODUyMg==&mid=2247483682&idx=1&sn=6f2e4ec7bcf2e1ad54288def0ceb31a0&chksm=90215157a756d8418b299aa6cb5ba949e707e3b42d5cda128923ebc7da9354ab410753acff6b#rd">微信公众号SDK使用入门（一）</a>
+mvn clean install org.apache.maven.plugins:maven-deploy-plugin:2.8:deploy -DskipTests
 
-# 在线演示
-请关注微信公众号 yinghang1888
-
-# 技术交流
-QQ群: 429388828
+```

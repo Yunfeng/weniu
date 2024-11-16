@@ -1,6 +1,6 @@
 package cn.buk.api.wechat.entity;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 /**
  * Created with IntelliJ IDEA.
